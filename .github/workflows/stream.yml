@@ -1,19 +1,4 @@
-name: APiX TV Streamer with Logo
-
-on:
-  workflow_dispatch:
-
-jobs:
-  streaming:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Install Tools
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y ffmpeg python3-pip jq curl
-          pip3 install streamlink
-
-      - name: Broadcast Stream with Logo
+name: Broadcast Stream with Logo
         run: |
           # 1. تحميل صورة الشعار الخاصة بك
           wget -O logo.png "https://iili.io/BLkTCFt.png"
@@ -23,11 +8,11 @@ jobs:
           STREAM_URL=$(echo $DATA | jq -r '.url')
           USER_AGENT=$(echo $DATA | jq -r '.useragent')
           
-          echo "Starting APiX TV stream with perfectly positioned watermark..."
+          echo "Starting APiX TV stream with larger and repositioned watermark..."
 
-          # 3. الدمج والبث مع الحجم والمكان الجديدين
+          # 3. الدمج والبث (الحجم 280، إزاحة 130 بكسل لليسار)
           streamlink --stdout --http-header "User-Agent=$USER_AGENT" "dash://$STREAM_URL" best | \
           ffmpeg -i pipe:0 -i logo.png \
-          -filter_complex "[1:v]scale=200:-1[logo];[0:v][logo]overlay=W-w-60:60" \
+          -filter_complex "[1:v]scale=280:-1[logo];[0:v][logo]overlay=W-w-130:60" \
           -c:v libx264 -preset ultrafast -c:a aac -f flv \
           "rtmp://vsu.okcdn.ru/input/14611275587311_15327401544431_u6cwcdvuta"
