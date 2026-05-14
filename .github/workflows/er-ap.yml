@@ -1,4 +1,4 @@
-name: Live Stream AP2 (Ultra-Strong 1080p 30FPS)
+name: Live Stream AP2 (Direct Push Copy)
 
 on:
   workflow_dispatch:
@@ -13,35 +13,31 @@ jobs:
           sudo apt install -y ffmpeg
           pip install streamlink
 
-      - name: Start Professional 30FPS Engine
+      - name: Start Direct Copy Engine
         run: |
           STREAM_URL="https://stream.supertv.gg:3001/supertv/sport/stv1/ch1/ch1_1080.m3u8"
           RTMP_URL="rtmp://vsu.okcdn.ru/input/14574023089903_15258718964463_f7662l35iu"
 
           while true; do
-            echo "🚀 Launching Ultra-Strong 30FPS Engine..."
+            echo "🚀 Direct Pushing: Copying source stream to destination..."
             
-            # --hls-live-edge 3: لضمان تدفق مستمر دون تقطيع
-            # -preset fast: رفع جودة الضغط (أفضل من veryfast) لأن جيت هوب يتحمل
-            # -b:v 6000k: قوة ضخ بيانات عالية لصورة 1080p حقيقية
+            # --hls-live-edge 2: البقاء في مقدمة البث الحي (تأخير ثانيتين فقط)
+            # --hls-segment-threads 3: سحب اللقطات بـ 3 مسارات لضمان السرعة القصوى
             
             streamlink --stdout \
               --hls-live-restart \
-              --hls-live-edge 3 \
+              --hls-live-edge 2 \
+              --hls-segment-threads 3 \
               --http-no-ssl-verify \
               --http-header "User-Agent=Mozilla/5.0" \
               --http-header "Referer=https://supertv.gg/" \
               "hls://$STREAM_URL" best | \
-              ffmpeg -use_wallclock_as_timestamps 1 -i pipe:0 \
+              ffmpeg -thread_queue_size 16384 -i pipe:0 \
               -fflags +genpts+igndts+nobuffer \
-              -c:v libx264 -preset fast \
-              -b:v 6000k -minrate 6000k -maxrate 6000k -bufsize 12000k \
-              -s 1920x1080 -r 30 -g 60 \
-              -pix_fmt yuv420p -profile:v high -level 4.2 \
-              -x264-params "nal-hrd=cbr:force-cfr=1:keyint=60" \
-              -c:a aac -b:a 128k -ar 44100 \
+              -c copy \
+              -flvflags no_sequence_end \
               -f flv "$RTMP_URL"
 
-            echo "⚠️ Re-syncing in 5 seconds..."
-            sleep 5
+            echo "⚠️ Stream gap detected. Re-pushing in 3 seconds..."
+            sleep 3
           done
