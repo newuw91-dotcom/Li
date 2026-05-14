@@ -1,0 +1,44 @@
+name: Live Stream AP2 (Earthlink)
+
+on:
+  workflow_dispatch: # يتيح لك تشغيل البث يدوياً من زر Run Workflow
+  push:
+    branches:
+      - main
+
+jobs:
+  stream:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install Tools (FFmpeg & Streamlink)
+        run: |
+          sudo apt update
+          sudo apt install -y ffmpeg
+          pip install streamlink
+
+      - name: Start Professional Streaming
+        run: |
+          # تعريف المتغيرات
+          STREAM_URL="https://stream.supertv.gg:3001/supertv/sport/stv1/ch1/ch1_1080.m3u8"
+          RTMP_URL="rtmp://vsu.okcdn.ru/input/14574023089903_15258718964463_f7662l35iu"
+
+          # تشغيل البث بنفس إعداداتك المفضلة
+          while true; do
+            echo "🚀 Starting stream on GitHub Runner..."
+            streamlink --stdout \
+              --ringbuffer-size 32M \
+              --hls-live-edge 1 \
+              --http-no-ssl-verify \
+              --http-header "User-Agent=Mozilla/5.0" \
+              --http-header "Referer=https://supertv.gg/" \
+              "hls://$STREAM_URL" best | \
+              ffmpeg -thread_queue_size 8192 -i pipe:0 \
+              -c copy \
+              -f flv "$RTMP_URL"
+            
+            echo "⚠️ Stream interrupted. Reconnecting in 5 seconds..."
+            sleep 5
+          done
