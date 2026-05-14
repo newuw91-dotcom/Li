@@ -1,4 +1,4 @@
-name: Live Stream AP2 (Direct Push Copy)
+name: Live Stream AP2 (Fast Direct Push)
 
 on:
   workflow_dispatch:
@@ -13,31 +13,34 @@ jobs:
           sudo apt install -y ffmpeg
           pip install streamlink
 
-      - name: Start Direct Copy Engine
+      - name: Start Direct Push (No Encoding)
         run: |
           STREAM_URL="https://stream.supertv.gg:3001/supertv/sport/stv1/ch1/ch1_1080.m3u8"
           RTMP_URL="rtmp://vsu.okcdn.ru/input/14574023089903_15258718964463_f7662l35iu"
 
           while true; do
-            echo "🚀 Direct Pushing: Copying source stream to destination..."
+            echo "🚀 Pushing Direct Stream: No modifications, maximum speed..."
             
-            # --hls-live-edge 2: البقاء في مقدمة البث الحي (تأخير ثانيتين فقط)
-            # --hls-segment-threads 3: سحب اللقطات بـ 3 مسارات لضمان السرعة القصوى
+            # --hls-live-edge 1: البقاء في قلب الحدث (أقل تأخير ممكن)
+            # --hls-segment-threads 3: سحب 3 قطع فيديو في نفس اللحظة
+            # --stream-timeout 15: إذا توقف إيرثلنك لـ 15 ثانية، اقطع وأعد الاتصال فوراً
             
             streamlink --stdout \
               --hls-live-restart \
-              --hls-live-edge 2 \
+              --hls-live-edge 1 \
               --hls-segment-threads 3 \
+              --stream-timeout 15 \
               --http-no-ssl-verify \
-              --http-header "User-Agent=Mozilla/5.0" \
+              --http-header "User-Agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" \
               --http-header "Referer=https://supertv.gg/" \
               "hls://$STREAM_URL" best | \
               ffmpeg -thread_queue_size 16384 -i pipe:0 \
-              -fflags +genpts+igndts+nobuffer \
+              -fflags +genpts+igndts+nobuffer+flush_packets \
+              -flags +low_delay \
               -c copy \
-              -flvflags no_sequence_end \
+              -copyts \
               -f flv "$RTMP_URL"
 
-            echo "⚠️ Stream gap detected. Re-pushing in 3 seconds..."
-            sleep 3
+            echo "⚠️ Source dropped or Geo-blocked. Retrying in 5 seconds..."
+            sleep 5
           done
