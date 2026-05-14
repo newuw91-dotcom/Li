@@ -1,4 +1,4 @@
-name: Live Stream - True Live Fix
+name: Live Stream - Fixed v3
 
 on:
   workflow_dispatch:
@@ -15,7 +15,7 @@ jobs:
           sudo apt-get install -y ffmpeg
           pip install streamlink --quiet
 
-      - name: Start True Live Engine
+      - name: Start Stream Engine
         env:
           STREAM_URL: "https://stream.supertv.gg:3001/supertv/sport/stv1/ch1/adaptive.m3u8"
           RTMP_URL: "rtmp://vsu.okcdn.ru/input/14574023089903_15258718964463_f7662l35iu"
@@ -33,10 +33,9 @@ jobs:
               --stdout \
               --loglevel warning \
               --hls-live-edge 4 \
-              --hls-segment-attempts 5 \
-              --hls-segment-timeout 20 \
-              --hls-timeout 60 \
               --stream-segment-threads 4 \
+              --stream-segment-attempts 5 \
+              --stream-segment-timeout 20 \
               --ringbuffer-size 64M \
               --stream-sorting-excludes "<720p" \
               --http-no-ssl-verify \
@@ -47,7 +46,7 @@ jobs:
               --retry-streams 10 \
               --retry-max 999 \
               --retry-open 10 \
-              "hls://$STREAM_URL" best \
+              "$STREAM_URL" best \
             | \
             ffmpeg \
               -loglevel warning \
