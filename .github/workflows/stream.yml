@@ -17,13 +17,12 @@ jobs:
         run: |
           while true; do
             echo "Fetching fresh dynamic URL from panel..."
-            DATA=$(curl -s "https://foxtv7.com/panel/url-stream/bein1.json")
+            DATA=$(curl -s "https://foxtv7.com/panel/url-stream/bein1.json?nocache=$RANDOM")
             STREAM_URL=$(echo $DATA | jq -r '.url')
             USER_AGENT=$(echo $DATA | jq -r '.useragent')
             
             echo "Starting APiX TV stream with 64M Ringbuffer for maximum stability..."
             
-            # إضافة خزان 64 ميجا لامتصاص الانقطاعات من السيرفر الأصلي
             streamlink --stdout --ringbuffer-size 64M \
             --http-header "User-Agent=$USER_AGENT" "dash://$STREAM_URL" best | \
             ffmpeg -thread_queue_size 2048 -i pipe:0 \
