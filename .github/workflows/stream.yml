@@ -1,17 +1,32 @@
-name: APiX TV Streamer
+name: APiX TV Auto-JSON Streamer
 
 on:
-  workflow_dispatch:
+  workflow_dispatch: # تشغيل يدوي
 
 jobs:
   streaming:
     runs-on: ubuntu-latest
     steps:
-      - name: Install FFmpeg
-        run: sudo apt-get update && sudo apt-get install -y ffmpeg
-
-      - name: Start Live Stream
+      - name: Install Tools
         run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg jq curl
+
+      - name: Process JSON and Start Stream
+        run: |
+          # 1. وضع رابط الجيسون هنا
+          JSON_URL="https://foxtv7.com/panel/url-stream/bein1.json"
+          
+          # 2. جلب البيانات وتحليلها
+          DATA=$(curl -s "$JSON_URL")
+          STREAM_URL=$(echo $DATA | jq -r '.url')
+          USER_AGENT=$(echo $DATA | jq -r '.useragent')
+
+          echo "Detected Stream URL: $STREAM_URL"
+
+          # 3. تشغيل FFmpeg باستخدام البيانات المستخرجة مباشرة
+          # [span_0](start_span)ملاحظة: البث المكتشف هو DASH MPD كما هو موضح في هيكلية الملف[span_0](end_span)
           ffmpeg -reconnect 1 -reconnect_at_eof 1 -reconnect_streamed 1 -reconnect_delay_max 5 \
-          -i "https://test-link.qpis.workers.dev/live.mpd" \
+          -user_agent "$USER_AGENT" \
+          -i "$STREAM_URL" \
           -c copy -f flv "rtmp://vsu.okcdn.ru/input/14611275587311_15327401544431_u6cwcdvuta"
