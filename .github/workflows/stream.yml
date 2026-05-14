@@ -13,21 +13,27 @@ jobs:
           sudo apt-get install -y ffmpeg python3-pip jq curl
           pip3 install streamlink
 
-      - name: Broadcast Stream with Logo
+      - name: Broadcast Stream (Auto-Reconnect & Logo)
         run: |
-          # 1. تحميل صورة الشعار الخاصة بك
+          # تحميل صورة الشعار
           wget -O logo.png "https://iili.io/BLkTCFt.png"
 
-          # 2. جلب الرابط الأصلي من اللوحة
-          DATA=$(curl -s "https://foxtv7.com/panel/url-stream/bein1.json")
-          STREAM_URL=$(echo $DATA | jq -r '.url')
-          USER_AGENT=$(echo $DATA | jq -r '.useragent')
-          
-          echo "Starting APiX TV stream with larger and repositioned watermark..."
-
-          # 3. الدمج والبث (الحجم 280، إزاحة 130 بكسل لليسار)
-          streamlink --stdout --http-header "User-Agent=$USER_AGENT" "dash://$STREAM_URL" best | \
-          ffmpeg -i pipe:0 -i logo.png \
-          -filter_complex "[1:v]scale=280:-1[logo];[0:v][logo]overlay=W-w-130:60" \
-          -c:v libx264 -preset ultrafast -c:a aac -f flv \
-          "rtmp://vsu.okcdn.ru/input/14611275587311_15327401544431_u6cwcdvuta"
+          # بدء حلقة تكرار لا نهائية لضمان عدم توقف البث أبداً
+          while true; do
+            echo "Fetching fresh dynamic URL from panel..."
+            DATA=$(curl -s "https://foxtv7.com/panel/url-stream/bein1.json")
+            STREAM_URL=$(echo $DATA | jq -r '.url')
+            USER_AGENT=$(echo $DATA | jq -r '.useragent')
+            
+            echo "Starting APiX TV stream..."
+            
+            # الدمج والبث (تم تقليل هامش اليسار إلى 90 ليزحف الشعار لليمين)
+            streamlink --stdout --http-header "User-Agent=$USER_AGENT" "dash://$STREAM_URL" best | \
+            ffmpeg -i pipe:0 -i logo.png \
+            -filter_complex "[1:v]scale=280:-1[logo];[0:v][logo]overlay=W-w-90:60" \
+            -c:v libx264 -preset ultrafast -c:a aac -f flv \
+            "rtmp://vsu.okcdn.ru/input/14611275587311_15327401544431_u6cwcdvuta"
+            
+            echo "Stream disconnected! Reconnecting in 3 seconds..."
+            sleep 3
+          done
