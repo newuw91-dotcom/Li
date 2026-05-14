@@ -1,4 +1,4 @@
-name: Live Stream AP2 (Adaptive Stability)
+name: Live Stream AP2 (Adaptive Direct Push)
 
 on:
   workflow_dispatch:
@@ -13,31 +13,34 @@ jobs:
           sudo apt install -y ffmpeg
           pip install streamlink
 
-      - name: Start Adaptive Push Engine
+      - name: Start Adaptive Pro Engine
         run: |
-          STREAM_URL="https://stream.supertv.gg:3001/supertv/sport/stv1/ch1/ch1_1080.m3u8"
+          # الرابط المتعدد الجديد الخاص بك
+          STREAM_URL="https://stream.supertv.gg:3001/supertv/sport/stv1/ch1/adaptive.m3u8"
           RTMP_URL="rtmp://vsu.okcdn.ru/input/14574023089903_15258718964463_f7662l35iu"
 
           while true; do
-            echo "🚀 Adaptive Pushing: Priority Best -> 1080p -> 720p..."
+            echo "🚀 Adaptive Engine: Monitoring Best Quality (1080p/720p)..."
             
-            # نحدد هنا الجودات المطلوبة بالترتيب: 1080p أولاً ثم 720p ثم أي جودة أخرى
-            # هذا يضمن أن المشغل سيصله دائماً "بيانات" حتى لو ضعف المصدر
+            # --stream-sorting-excludes "<720p": نأمر الأداة بتجاهل أي جودة أقل من 720p لضمان قوة الصورة.
+            # --hls-live-edge 2: ملاحقة البث الحي في أحدث نقطة لضمان تحديث اللقطات.
             
             streamlink --stdout \
               --hls-live-restart \
               --hls-live-edge 2 \
+              --stream-segment-threads 3 \
               --stream-sorting-excludes "<720p" \
               --http-no-ssl-verify \
-              --http-header "User-Agent=Mozilla/5.0" \
+              --http-header "User-Agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" \
               --http-header "Referer=https://supertv.gg/" \
-              "hls://$STREAM_URL" best,1080p,720p | \
-              ffmpeg -thread_queue_size 32768 -i pipe:0 \
+              "hls://$STREAM_URL" best | \
+              ffmpeg -use_wallclock_as_timestamps 1 -thread_queue_size 32768 -i pipe:0 \
               -fflags +genpts+igndts+nobuffer+flush_packets \
               -c copy \
+              -map 0 \
               -f flv -flvflags no_sequence_end \
               "$RTMP_URL"
 
-            echo "⚠️ Quality Shift or Interruption. Recovering..."
-            sleep 2
+            echo "⚠️ Quality Shift or Network Gap. Re-syncing in 3 seconds..."
+            sleep 3
           done
