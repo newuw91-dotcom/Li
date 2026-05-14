@@ -1,67 +1,48 @@
-name: Live Stream AP2 (Buffered 50FPS Force)
+name: Live Stream AP2 (Smart-Force 1080p)
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
 
 jobs:
   stream:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
       - name: Install Tools
         run: |
           sudo apt update
           sudo apt install -y ffmpeg
           pip install streamlink
 
-      - name: Start Buffered 50FPS Engine
+      - name: Start Intelligent 50FPS Stream
         run: |
           STREAM_URL="https://stream.supertv.gg:3001/supertv/sport/stv1/ch1/ch1_1080.m3u8"
           RTMP_URL="rtmp://vsu.okcdn.ru/input/14574023089903_15258718964463_f7662l35iu"
 
           while true; do
-            echo "1. Cleaning previous buffer..."
-            rm -f buffer.ts
+            echo "🚀 Launching Smart-Update Engine..."
             
-            echo "2. Building the 'Data Dam' in background..."
-            # سحب البث وتخزينه في ملف بصمت مع تجاهل أخطاء الانقطاع البسيطة
+            # --hls-live-restart: البدء دائماً من أحدث ثانية متوفرة
+            # --hls-playlist-reload-attempts 15: المحاولة المستمرة لتحديث القائمة غصب
+            
             streamlink --stdout \
               --hls-live-restart \
-              --hls-live-edge 10 \
+              --hls-live-edge 2 \
+              --hls-playlist-reload-attempts 15 \
               --http-no-ssl-verify \
               --http-header "User-Agent=Mozilla/5.0" \
               --http-header "Referer=https://supertv.gg/" \
-              "hls://$STREAM_URL" best > buffer.ts 2>/dev/null &
-            
-            STREAM_PID=$!
-            
-            echo "3. Waiting 30 seconds to fill the reservoir..."
-            # عداد انتظار لبناء الخزان
-            for i in {30..1}; do
-              printf "\r⏳ Buffering: %2d sec remaining..." "$i"
-              sleep 1
-            done
-            echo -e "\n4. Launching the 50FPS Heavy Engine..."
-
-            # الأوامر السحرية لتحقيق فكرتك:
-            # -re: القراءة بالسرعة الطبيعية للملف لضمان عدم استهلاك الـ 30 ثانية بسرعة
-            # -r 50: إجبار البث على 50 فريم ثابت (سيقوم بتكرار الفريمات إذا كان المصدر 25)
-            # -g 100: جعل الكي-فريم كل ثانيتين (ضعف الفريمات) لثبات OK.ru
-            
-            ffmpeg -re -i buffer.ts \
+              --http-header "Cache-Control=no-cache" \
+              "hls://$STREAM_URL" best | \
+              ffmpeg -use_wallclock_as_timestamps 1 -i pipe:0 \
+              -fflags +genpts+igndts+nobuffer -flags +low_delay \
               -c:v libx264 -preset ultrafast -tune zerolatency \
               -b:v 5000k -minrate 5000k -maxrate 5000k -bufsize 5000k \
               -s 1920x1080 -r 50 -g 100 \
               -pix_fmt yuv420p -x264-params "nal-hrd=cbr:force-cfr=1" \
+              -max_muxing_queue_size 9999 \
               -c:a aac -b:a 128k -ar 44100 \
               -f flv "$RTMP_URL"
 
-            echo "⚠️ Buffer exhausted or source died. Restarting system..."
-            kill $STREAM_PID 2>/dev/null
+            echo "⚠️ Re-syncing and Force-Updating in 5 seconds..."
             sleep 5
           done
