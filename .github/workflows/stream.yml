@@ -1,4 +1,4 @@
-name: APiX TV Direct Streamlink Broadcaster
+name: APiX TV Streamer with Logo
 
 on:
   workflow_dispatch:
@@ -13,18 +13,21 @@ jobs:
           sudo apt-get install -y ffmpeg python3-pip jq curl
           pip3 install streamlink
 
-      - name: Broadcast Stream Direct
+      - name: Broadcast Stream with Logo
         run: |
-          echo "Fetching fresh dynamic URL from panel..."
-          # جلب الرابط الأصلي مباشرة من اللوحة
+          # 1. تحميل صورة الشعار الخاصة بك
+          wget -O logo.png "https://iili.io/BLkTCFt.png"
+
+          # 2. جلب الرابط الأصلي
           DATA=$(curl -s "https://foxtv7.com/panel/url-stream/bein1.json")
           STREAM_URL=$(echo $DATA | jq -r '.url')
           USER_AGENT=$(echo $DATA | jq -r '.useragent')
           
-          echo "Starting robust direct stream for APiX TV..."
-          
-          # إعطاء الرابط الأصلي لـ streamlink. هو ذكي بما يكفي لتحديث التوكنات بنفسه!
+          echo "Starting APiX TV stream with watermark..."
+
+          # 3. الدمج والبث (تم استخدام ultrafast لضمان عدم التقطيع)
           streamlink --stdout --http-header "User-Agent=$USER_AGENT" "dash://$STREAM_URL" best | \
-          ffmpeg -i pipe:0 \
-          -c:v libx264 -preset superfast -c:a aac -f flv \
+          ffmpeg -i pipe:0 -i logo.png \
+          -filter_complex "[1:v]scale=120:-1[logo];[0:v][logo]overlay=W-w-30:30" \
+          -c:v libx264 -preset ultrafast -c:a aac -f flv \
           "rtmp://vsu.okcdn.ru/input/14611275587311_15327401544431_u6cwcdvuta"
