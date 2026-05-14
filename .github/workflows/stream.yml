@@ -1,9 +1,24 @@
-name: Broadcast Stream with Logo
+name: APiX TV Streamer with Logo
+
+on:
+  workflow_dispatch:
+
+jobs:
+  streaming:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg python3-pip jq curl
+          pip3 install streamlink
+
+      - name: Broadcast Stream with Logo
         run: |
           # 1. تحميل صورة الشعار الخاصة بك
           wget -O logo.png "https://iili.io/BLkTCFt.png"
 
-          # 2. جلب الرابط الأصلي
+          # 2. جلب الرابط الأصلي من اللوحة
           DATA=$(curl -s "https://foxtv7.com/panel/url-stream/bein1.json")
           STREAM_URL=$(echo $DATA | jq -r '.url')
           USER_AGENT=$(echo $DATA | jq -r '.useragent')
