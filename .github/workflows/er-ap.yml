@@ -1,4 +1,4 @@
-name: Live Stream AP2 (Force 1080p)
+name: Live Stream AP2 (Ultra 1080p 5000k)
 
 on:
   workflow_dispatch:
@@ -19,32 +19,36 @@ jobs:
           sudo apt install -y ffmpeg
           pip install streamlink
 
-      - name: Start Heavy Duty Streaming
+      - name: Start Heavy 1080p Encoding
         run: |
           STREAM_URL="https://stream.supertv.gg:3001/supertv/sport/stv1/ch1/ch1_1080.m3u8"
           RTMP_URL="rtmp://vsu.okcdn.ru/input/14574023089903_15258718964463_f7662l35iu"
 
           while true; do
-            echo "🚀 Force Encoding 1080p @ 5000kbps..."
+            echo "🚀 Launching Ultra-Stable 1080p Stream..."
             
-            # شرح التعديلات الجديدة:
-            # -s 1920x1080: إجبار الدقة على 1080p
-            # -c:v libx264: استخدام معالج جيت هوب لإعادة تشفير الفيديو
-            # -b:v 5000k: تثبيت قوة البث على 5000 كيلوبت
-            # -preset veryfast: لضمان السرعة وعدم التقطيع
-            # -g 60: لضمان استقرار الصورة في مشغل OK.ru
+            # التطويرات الجديدة لثبات الـ 1080p:
+            # -preset ultrafast: أسرع أداء ممكن للمعالج لضمان عدم حدوث Lag
+            # -tune zerolatency: إلغاء أي تأخير ناتج عن معالجة الفيديو
+            # -x264-params "nal-hrd=cbr": إجبار المشفر على ضخ بيانات ثابتة 100%
+            # -force_key_frames: إجبار السيرفر على صنع نقطة بداية كل ثانيتين
             
             streamlink --stdout \
+              --hls-live-edge 4 \
+              --ringbuffer-size 256M \
               --http-no-ssl-verify \
               --http-header "User-Agent=Mozilla/5.0" \
               --http-header "Referer=https://supertv.gg/" \
               "hls://$STREAM_URL" best | \
               ffmpeg -i pipe:0 \
-              -c:v libx264 -preset veryfast -b:v 5000k -maxrate 5000k -bufsize 10000k \
-              -s 1920x1080 -pix_fmt yuv420p -g 60 \
+              -c:v libx264 -preset ultrafast -tune zerolatency \
+              -b:v 5000k -minrate 5000k -maxrate 5000k -bufsize 5000k \
+              -x264-params "nal-hrd=cbr" -s 1920x1080 -r 30 -g 60 \
+              -force_key_frames "expr:gte(t,n_forced*2)" \
+              -pix_fmt yuv420p -profile:v high -level 4.2 \
               -c:a aac -b:a 128k -ar 44100 \
               -f flv "$RTMP_URL"
             
-            echo "⚠️ Restarting in 5 seconds..."
-            sleep 5
+            echo "⚠️ Source drop detected. Reconnecting in 3 seconds..."
+            sleep 3
           done
