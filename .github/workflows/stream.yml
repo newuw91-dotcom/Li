@@ -1,4 +1,4 @@
-name: APiX TV Armored Streamer (Anti-Drop)
+name: APiX TV Armored Streamer (Fixed)
 
 on:
   workflow_dispatch:
@@ -13,22 +13,26 @@ jobs:
           sudo apt-get install -y ffmpeg python3-pip jq curl
           pip3 install streamlink
 
-      - name: Broadcast Stream (Heavy Buffer & Instant Retry)
+      - name: Broadcast Stream (Heavy Buffer & Safe Fetch)
         run: |
           while true; do
             echo "Fetching fresh dynamic URL from panel..."
-            DATA=$(curl -s "https://foxtv7.com/panel/url-stream/bein1.json?nocache=$RANDOM")
+            # استخدمنا Cache-Control بدلاً من تغيير الرابط لضمان عدم تعطل لوحة التحكم
+            DATA=$(curl -s -H "Cache-Control: no-cache" "https://foxtv7.com/panel/url-stream/bein1.json")
             STREAM_URL=$(echo $DATA | jq -r '.url')
             USER_AGENT=$(echo $DATA | jq -r '.useragent')
             
+            # جدار الحماية: إذا كان الرابط فارغاً بسبب ضعف النت أو اللوحة، انتظر ولا تفصل السيرفر
+            if [ "$STREAM_URL" == "null" ] || [ -z "$STREAM_URL" ]; then
+              echo "Error: Could not get stream URL. Retrying in 5 seconds..."
+              sleep 5
+              continue
+            fi
+            
             echo "Starting APiX TV Armored Stream..."
             
-            # 1. --dash-live-edge 8: البقاء في وسط البث والابتعاد عن النهاية المهددة بالانقطاع
-            # 2. --retry-streams 10 & --retry-max 50: إعادة المحاولة بشراسة وبسرعة عند انقطاع اللقطات
-            # 3. --ringbuffer-size 128M: مضاعفة خزان البيانات لامتصاص أي صدمة
-            
+            # خزان 128 ميجا + إعادة المحاولة 50 مرة بشراسة بدون أوامر DASH الخاطئة
             streamlink --stdout \
-            --dash-live-edge 8 \
             --retry-streams 10 \
             --retry-max 50 \
             --stream-segment-timeout 10 \
@@ -39,6 +43,6 @@ jobs:
             -c:v libx264 -preset ultrafast -tune zerolatency -b:v 6400k -maxrate 6400k -bufsize 12800k -c:a aac -b:a 128k -f flv \
             "rtmp://vsu.okcdn.ru/input/14611275587311_15327401544431_u6cwcdvuta"
             
-            echo "FFmpeg exited! Reconnecting the entire process in 2 seconds..."
-            sleep 2
+            echo "FFmpeg exited! Reconnecting the entire process in 3 seconds..."
+            sleep 3
           done
