@@ -1,3 +1,18 @@
+name: APiX TV Streamer with Logo
+
+on:
+  workflow_dispatch:
+
+jobs:
+  streaming:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg python3-pip jq curl
+          pip3 install streamlink
+
       - name: Broadcast Stream with Logo
         run: |
           # 1. تحميل صورة الشعار الخاصة بك
