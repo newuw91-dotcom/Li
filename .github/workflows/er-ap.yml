@@ -1,4 +1,4 @@
-name: Live Stream AP2 (Direct Flash Push)
+name: Live Stream AP2 (Adaptive Stability)
 
 on:
   workflow_dispatch:
@@ -13,33 +13,31 @@ jobs:
           sudo apt install -y ffmpeg
           pip install streamlink
 
-      - name: Start Flash Direct Stream
+      - name: Start Adaptive Push Engine
         run: |
           STREAM_URL="https://stream.supertv.gg:3001/supertv/sport/stv1/ch1/ch1_1080.m3u8"
           RTMP_URL="rtmp://vsu.okcdn.ru/input/14574023089903_15258718964463_f7662l35iu"
 
           while true; do
-            echo "🚀 Flash Pushing: Direct link between Source and Destination..."
+            echo "🚀 Adaptive Pushing: Priority Best -> 1080p -> 720p..."
             
-            # --hls-live-edge 1: البقاء في "نقطة الصفر" للبث المباشر (أسرع تحديث)
-            # --stream-segment-threads 3: سحب 3 قطع فيديو في وقت واحد لدفعها للمشغل غصب
+            # نحدد هنا الجودات المطلوبة بالترتيب: 1080p أولاً ثم 720p ثم أي جودة أخرى
+            # هذا يضمن أن المشغل سيصله دائماً "بيانات" حتى لو ضعف المصدر
             
             streamlink --stdout \
               --hls-live-restart \
-              --hls-live-edge 1 \
-              --stream-segment-threads 3 \
+              --hls-live-edge 2 \
+              --stream-sorting-excludes "<720p" \
               --http-no-ssl-verify \
-              --http-header "User-Agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" \
+              --http-header "User-Agent=Mozilla/5.0" \
               --http-header "Referer=https://supertv.gg/" \
-              "hls://$STREAM_URL" best | \
+              "hls://$STREAM_URL" best,1080p,720p | \
               ffmpeg -thread_queue_size 32768 -i pipe:0 \
               -fflags +genpts+igndts+nobuffer+flush_packets \
-              -flags +low_delay \
               -c copy \
-              -map 0 \
               -f flv -flvflags no_sequence_end \
               "$RTMP_URL"
 
-            echo "⚠️ Gap detected. Re-connecting in 2 seconds..."
+            echo "⚠️ Quality Shift or Interruption. Recovering..."
             sleep 2
           done
