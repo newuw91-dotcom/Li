@@ -1,7 +1,7 @@
-name: APiX TV Auto-JSON Streamer
+name: APiX TV Professional Streamer
 
 on:
-  workflow_dispatch: # تشغيل يدوي
+  workflow_dispatch:
 
 jobs:
   streaming:
@@ -12,21 +12,18 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y ffmpeg jq curl
 
-      - name: Process JSON and Start Stream
+      - name: Fetch and Stream
         run: |
-          # 1. وضع رابط الجيسون هنا
-          JSON_URL="https://foxtv7.com/panel/url-stream/bein1.json"
-          
-          # 2. جلب البيانات وتحليلها
-          DATA=$(curl -s "$JSON_URL")
+          # 1. جلب البيانات الطازجة من الجيسون
+          DATA=$(curl -s "https://foxtv7.com/panel/url-stream/bein1.json")
           STREAM_URL=$(echo $DATA | jq -r '.url')
           USER_AGENT=$(echo $DATA | jq -r '.useragent')
 
-          echo "Detected Stream URL: $STREAM_URL"
+          echo "Streaming from: $STREAM_URL"
 
-          # 3. تشغيل FFmpeg باستخدام البيانات المستخرجة مباشرة
-          # [span_0](start_span)ملاحظة: البث المكتشف هو DASH MPD كما هو موضح في هيكلية الملف[span_0](end_span)
+          # 2. البث مع تحويل الترميز لضمان التوافق مع OK.ru
           ffmpeg -reconnect 1 -reconnect_at_eof 1 -reconnect_streamed 1 -reconnect_delay_max 5 \
+          -headers "Referer: https://foxtv7.com/\r\n" \
           -user_agent "$USER_AGENT" \
           -i "$STREAM_URL" \
-          -c copy -f flv "rtmp://vsu.okcdn.ru/input/14611275587311_15327401544431_u6cwcdvuta"
+          -vcodec libx264 -preset superfast -acodec aac -f flv "rtmp://vsu.okcdn.ru/input/14611275587311_15327401544431_u6cwcdvuta"
