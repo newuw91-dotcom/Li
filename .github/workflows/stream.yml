@@ -1,4 +1,4 @@
-name: APiX TV Direct Fast Streamer
+name: APiX TV Stable Streamer (Anti-Lag)
 
 on:
   workflow_dispatch:
@@ -13,21 +13,23 @@ jobs:
           sudo apt-get install -y ffmpeg python3-pip jq curl
           pip3 install streamlink
 
-      - name: Broadcast Stream (Direct & Auto-Reconnect)
+      - name: Broadcast Stream (Anti-Lag & Auto-Reconnect)
         run: |
-          # بدء حلقة تكرار لا نهائية لضمان عدم توقف البث أبداً
           while true; do
             echo "Fetching fresh dynamic URL from panel..."
             DATA=$(curl -s "https://foxtv7.com/panel/url-stream/bein1.json")
             STREAM_URL=$(echo $DATA | jq -r '.url')
             USER_AGENT=$(echo $DATA | jq -r '.useragent')
             
-            echo "Starting APiX TV direct stream (No Watermark)..."
+            echo "Starting APiX TV stable stream (Optimized for unstable internet)..."
             
-            # التحويل المباشر والسريع جداً (بدون فلاتر صور)
-            streamlink --stdout --http-header "User-Agent=$USER_AGENT" "dash://$STREAM_URL" best | \
-            ffmpeg -i pipe:0 \
-            -c:v libx264 -preset ultrafast -c:a aac -f flv \
+            # 1. طلب جودة 720p كأولوية قصوى (إذا لم يجدها يسحب best كاحتياط)
+            # 2. إضافة -thread_queue_size 512 لامتصاص التقطيع
+            # 3. تحديد -maxrate 2500k و -bufsize 5000k لتثبيت استهلاك الإنترنت
+            
+            streamlink --stdout --http-header "User-Agent=$USER_AGENT" "dash://$STREAM_URL" 720p,best | \
+            ffmpeg -thread_queue_size 512 -i pipe:0 \
+            -c:v libx264 -preset ultrafast -maxrate 2500k -bufsize 5000k -c:a aac -b:a 128k -f flv \
             "rtmp://vsu.okcdn.ru/input/14611275587311_15327401544431_u6cwcdvuta"
             
             echo "Stream disconnected! Reconnecting in 3 seconds..."
