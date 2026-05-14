@@ -1,0 +1,72 @@
+name: Live Stream - Fixed v3
+
+on:
+  workflow_dispatch:
+
+jobs:
+  stream:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+
+    steps:
+      - name: Install Tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg
+          pip install streamlink --quiet
+
+      - name: Start Stream Engine
+        env:
+          STREAM_URL: "http://po.vibertv.online:2086/live/11/11/623874.m3u8"
+          RTMP_URL: "rtmp://vsu.okcdn.ru/input/14574023089903_15258718964463_f7662l35iu"
+        run: |
+          RETRY_COUNT=0
+          BACKOFF=3
+
+          while true; do
+            RETRY_COUNT=$((RETRY_COUNT + 1))
+            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+            echo "🚀 [Attempt #$RETRY_COUNT] $(date '+%H:%M:%S UTC')"
+            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+            streamlink \
+              --stdout \
+              --loglevel warning \
+              --hls-live-edge 4 \
+              --stream-segment-threads 4 \
+              --stream-segment-attempts 5 \
+              --stream-segment-timeout 20 \
+              --ringbuffer-size 64M \
+              --stream-sorting-excludes "<720p" \
+              --http-no-ssl-verify \
+              --http-timeout 30 \
+              --http-header "User-Agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" \
+              --http-header "Referer=https://supertv.gg/" \
+              --http-header "Origin=https://supertv.gg" \
+              --retry-streams 10 \
+              --retry-max 999 \
+              --retry-open 10 \
+              "$STREAM_URL" best \
+            | \
+            ffmpeg \
+              -loglevel warning \
+              -use_wallclock_as_timestamps 1 \
+              -thread_queue_size 65536 \
+              -analyzeduration 2000000 \
+              -probesize 2000000 \
+              -i pipe:0 \
+              -fflags +genpts+igndts+discardcorrupt \
+              -avoid_negative_ts make_zero \
+              -c:v copy \
+              -c:a copy \
+              -map 0:v:0 \
+              -map 0:a:0 \
+              -max_interleave_delta 500000 \
+              -f flv \
+              "$RTMP_URL"
+
+            EXIT_CODE=$?
+            echo "⚠️ Stopped (exit: $EXIT_CODE) — retry in ${BACKOFF}s..."
+            [ $EXIT_CODE -ne 0 ] && BACKOFF=$((BACKOFF < 15 ? BACKOFF + 2 : 15)) || BACKOFF=3
+            sleep $BACKOFF
+          done
