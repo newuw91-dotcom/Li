@@ -1,7 +1,7 @@
-name: Live Stream AP2 (Earthlink)
+name: Live Stream AP2 (Force 1080p)
 
 on:
-  workflow_dispatch: # يتيح لك تشغيل البث يدوياً من زر Run Workflow
+  workflow_dispatch:
   push:
     branches:
       - main
@@ -13,32 +13,38 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Install Tools (FFmpeg & Streamlink)
+      - name: Install Tools
         run: |
           sudo apt update
           sudo apt install -y ffmpeg
           pip install streamlink
 
-      - name: Start Professional Streaming
+      - name: Start Heavy Duty Streaming
         run: |
-          # تعريف المتغيرات
           STREAM_URL="https://stream.supertv.gg:3001/supertv/sport/stv1/ch1/ch1_1080.m3u8"
           RTMP_URL="rtmp://vsu.okcdn.ru/input/14574023089903_15258718964463_f7662l35iu"
 
-          # تشغيل البث بنفس إعداداتك المفضلة
           while true; do
-            echo "🚀 Starting stream on GitHub Runner..."
+            echo "🚀 Force Encoding 1080p @ 5000kbps..."
+            
+            # شرح التعديلات الجديدة:
+            # -s 1920x1080: إجبار الدقة على 1080p
+            # -c:v libx264: استخدام معالج جيت هوب لإعادة تشفير الفيديو
+            # -b:v 5000k: تثبيت قوة البث على 5000 كيلوبت
+            # -preset veryfast: لضمان السرعة وعدم التقطيع
+            # -g 60: لضمان استقرار الصورة في مشغل OK.ru
+            
             streamlink --stdout \
-              --ringbuffer-size 32M \
-              --hls-live-edge 1 \
               --http-no-ssl-verify \
               --http-header "User-Agent=Mozilla/5.0" \
               --http-header "Referer=https://supertv.gg/" \
               "hls://$STREAM_URL" best | \
-              ffmpeg -thread_queue_size 8192 -i pipe:0 \
-              -c copy \
+              ffmpeg -i pipe:0 \
+              -c:v libx264 -preset veryfast -b:v 5000k -maxrate 5000k -bufsize 10000k \
+              -s 1920x1080 -pix_fmt yuv420p -g 60 \
+              -c:a aac -b:a 128k -ar 44100 \
               -f flv "$RTMP_URL"
             
-            echo "⚠️ Stream interrupted. Reconnecting in 5 seconds..."
+            echo "⚠️ Restarting in 5 seconds..."
             sleep 5
           done
