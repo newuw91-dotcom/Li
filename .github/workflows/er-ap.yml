@@ -1,4 +1,4 @@
-name: Live Stream AP2 (Adaptive Direct Push)
+name: Live Stream - Final Optimized
 
 on:
   workflow_dispatch:
@@ -6,41 +6,73 @@ on:
 jobs:
   stream:
     runs-on: ubuntu-latest
+    timeout-minutes: 350
+
     steps:
       - name: Install Tools
         run: |
-          sudo apt update
-          sudo apt install -y ffmpeg
-          pip install streamlink
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg
+          pip install streamlink --quiet
 
-      - name: Start Adaptive Pro Engine
+      - name: Start Stream Engine
+        env:
+          STREAM_URL: "https://stream.supertv.gg:3001/supertv/sport/stv1/ch1/adaptive.m3u8"
+          RTMP_URL: "rtmp://vsu.okcdn.ru/input/14574023089903_15258718964463_f7662l35iu"
         run: |
-          # الرابط المتعدد الجديد الخاص بك
-          STREAM_URL="https://stream.supertv.gg:3001/supertv/sport/stv1/ch1/adaptive.m3u8"
-          RTMP_URL="rtmp://vsu.okcdn.ru/input/14574023089903_15258718964463_f7662l35iu"
+          RETRY_COUNT=0
+          BACKOFF=3
 
           while true; do
-            echo "🚀 Adaptive Engine: Monitoring Best Quality (1080p/720p)..."
-            
-            # --stream-sorting-excludes "<720p": نأمر الأداة بتجاهل أي جودة أقل من 720p لضمان قوة الصورة.
-            # --hls-live-edge 2: ملاحقة البث الحي في أحدث نقطة لضمان تحديث اللقطات.
-            
-            streamlink --stdout \
+            RETRY_COUNT=$((RETRY_COUNT + 1))
+            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+            echo "🚀 [Attempt #$RETRY_COUNT] $(date '+%H:%M:%S UTC')"
+            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+            streamlink \
+              --stdout \
+              --loglevel warning \
               --hls-live-restart \
-              --hls-live-edge 2 \
-              --stream-segment-threads 3 \
+              --hls-live-edge 3 \
+              --hls-segment-attempts 5 \
+              --hls-segment-timeout 15 \
+              --hls-timeout 60 \
+              --stream-segment-threads 4 \
+              --stream-segment-attempts 5 \
+              --ringbuffer-size 64M \
               --stream-sorting-excludes "<720p" \
               --http-no-ssl-verify \
-              --http-header "User-Agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" \
+              --http-timeout 30 \
+              --http-header "User-Agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" \
               --http-header "Referer=https://supertv.gg/" \
-              "hls://$STREAM_URL" best | \
-              ffmpeg -use_wallclock_as_timestamps 1 -thread_queue_size 32768 -i pipe:0 \
-              -fflags +genpts+igndts+nobuffer+flush_packets \
-              -c copy \
-              -map 0 \
-              -f flv -flvflags no_sequence_end \
+              --http-header "Origin=https://supertv.gg" \
+              --retry-streams 5 \
+              --retry-max 10 \
+              --retry-open 5 \
+              "hls://$STREAM_URL" best \
+            | \
+            ffmpeg \
+              -loglevel warning \
+              -use_wallclock_as_timestamps 1 \
+              -thread_queue_size 65536 \
+              -i pipe:0 \
+              -fflags +genpts+igndts+nobuffer+discardcorrupt \
+              -c:v copy \
+              -c:a copy \
+              -map 0:v:0 \
+              -map 0:a:0 \
+              -max_interleave_delta 0 \
+              -reconnect 1 \
+              -reconnect_at_eof 1 \
+              -reconnect_streamed 1 \
+              -reconnect_delay_max 10 \
+              -f flv \
+              -flvflags no_sequence_end \
               "$RTMP_URL"
 
-            echo "⚠️ Quality Shift or Network Gap. Re-syncing in 3 seconds..."
-            sleep 3
+            EXIT_CODE=$?
+            echo "⚠️ Stopped (exit: $EXIT_CODE) — reconnecting in ${BACKOFF}s..."
+            
+            [ $EXIT_CODE -ne 0 ] && BACKOFF=$((BACKOFF < 15 ? BACKOFF + 2 : 15)) || BACKOFF=3
+            sleep $BACKOFF
           done
