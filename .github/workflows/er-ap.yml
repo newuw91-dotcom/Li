@@ -1,4 +1,4 @@
-name: Live Stream AP2 (Fast Direct Push)
+name: Live Stream AP2 (Direct Flash Push)
 
 on:
   workflow_dispatch:
@@ -13,34 +13,33 @@ jobs:
           sudo apt install -y ffmpeg
           pip install streamlink
 
-      - name: Start Direct Push (No Encoding)
+      - name: Start Flash Direct Stream
         run: |
           STREAM_URL="https://stream.supertv.gg:3001/supertv/sport/stv1/ch1/ch1_1080.m3u8"
           RTMP_URL="rtmp://vsu.okcdn.ru/input/14574023089903_15258718964463_f7662l35iu"
 
           while true; do
-            echo "🚀 Pushing Direct Stream: No modifications, maximum speed..."
+            echo "🚀 Flash Pushing: Direct link between Source and Destination..."
             
-            # --hls-live-edge 1: البقاء في قلب الحدث (أقل تأخير ممكن)
-            # --hls-segment-threads 3: سحب 3 قطع فيديو في نفس اللحظة
-            # --stream-timeout 15: إذا توقف إيرثلنك لـ 15 ثانية، اقطع وأعد الاتصال فوراً
+            # --hls-live-edge 1: البقاء في "نقطة الصفر" للبث المباشر (أسرع تحديث)
+            # --stream-segment-threads 3: سحب 3 قطع فيديو في وقت واحد لدفعها للمشغل غصب
             
             streamlink --stdout \
               --hls-live-restart \
               --hls-live-edge 1 \
-              --hls-segment-threads 3 \
-              --stream-timeout 15 \
+              --stream-segment-threads 3 \
               --http-no-ssl-verify \
               --http-header "User-Agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" \
               --http-header "Referer=https://supertv.gg/" \
               "hls://$STREAM_URL" best | \
-              ffmpeg -thread_queue_size 16384 -i pipe:0 \
+              ffmpeg -thread_queue_size 32768 -i pipe:0 \
               -fflags +genpts+igndts+nobuffer+flush_packets \
               -flags +low_delay \
               -c copy \
-              -copyts \
-              -f flv "$RTMP_URL"
+              -map 0 \
+              -f flv -flvflags no_sequence_end \
+              "$RTMP_URL"
 
-            echo "⚠️ Source dropped or Geo-blocked. Retrying in 5 seconds..."
-            sleep 5
+            echo "⚠️ Gap detected. Re-connecting in 2 seconds..."
+            sleep 2
           done
