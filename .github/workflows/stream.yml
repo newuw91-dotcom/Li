@@ -1,4 +1,4 @@
-name: APiX TV Streamlink Broadcaster
+name: APiX TV Direct Streamlink Broadcaster
 
 on:
   workflow_dispatch:
@@ -10,16 +10,21 @@ jobs:
       - name: Install Tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y ffmpeg python3-pip
-          # تثبيت أداة Streamlink لسحب البث الحي بذكاء
+          sudo apt-get install -y ffmpeg python3-pip jq curl
           pip3 install streamlink
 
-      - name: Broadcast Stream
+      - name: Broadcast Stream Direct
         run: |
-          echo "Starting robust stream for APiX TV..."
+          echo "Fetching fresh dynamic URL from panel..."
+          # جلب الرابط الأصلي مباشرة من اللوحة
+          DATA=$(curl -s "https://foxtv7.com/panel/url-stream/bein1.json")
+          STREAM_URL=$(echo $DATA | jq -r '.url')
+          USER_AGENT=$(echo $DATA | jq -r '.useragent')
           
-          # Streamlink يقرأ البث ويحدث الخريطة، ثم يمرر الفيديو الصافي لـ FFmpeg
-          streamlink --stdout "dash://https://test-link.qpis.workers.dev/live.mpd" best | \
+          echo "Starting robust direct stream for APiX TV..."
+          
+          # إعطاء الرابط الأصلي لـ streamlink. هو ذكي بما يكفي لتحديث التوكنات بنفسه!
+          streamlink --stdout --http-header "User-Agent=$USER_AGENT" "dash://$STREAM_URL" best | \
           ffmpeg -i pipe:0 \
           -c:v libx264 -preset superfast -c:a aac -f flv \
           "rtmp://vsu.okcdn.ru/input/14611275587311_15327401544431_u6cwcdvuta"
