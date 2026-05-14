@@ -1,4 +1,4 @@
-name: APiX TV Streamer with Logo
+name: APiX TV Ultimate Streamer
 
 on:
   workflow_dispatch:
@@ -13,24 +13,24 @@ jobs:
           sudo apt-get install -y ffmpeg python3-pip jq curl
           pip3 install streamlink
 
-      - name: Broadcast Stream (Auto-Reconnect & Logo)
+      - name: Broadcast Stream (Auto-Reconnect & Perfect Logo)
         run: |
-          # تحميل صورة الشعار
+          # 1. تحميل صورة الشعار الخاصة بك
           wget -O logo.png "https://iili.io/BLkTCFt.png"
 
-          # بدء حلقة تكرار لا نهائية لضمان عدم توقف البث أبداً
+          # 2. بدء حلقة تكرار لا نهائية لضمان عدم توقف البث أبداً
           while true; do
             echo "Fetching fresh dynamic URL from panel..."
             DATA=$(curl -s "https://foxtv7.com/panel/url-stream/bein1.json")
             STREAM_URL=$(echo $DATA | jq -r '.url')
-            USER_AGENT=$(echo $DATA | jq -r '.useragent')
+            User_Agent=$(echo $DATA | jq -r '.useragent')
             
-            echo "Starting APiX TV stream..."
+            echo "Starting APiX TV stream with perfectly positioned watermark..."
             
-            # الدمج والبث (تم تقليل هامش اليسار إلى 90 ليزحف الشعار لليمين)
+            # 3. الدمج والبث (الحجم 280، إزاحة هامش اليمين 120 لليمين، إنزال 70 للأسفل)
             streamlink --stdout --http-header "User-Agent=$USER_AGENT" "dash://$STREAM_URL" best | \
             ffmpeg -i pipe:0 -i logo.png \
-            -filter_complex "[1:v]scale=280:-1[logo];[0:v][logo]overlay=W-w-90:60" \
+            -filter_complex "[1:v]scale=280:-1[logo];[0:v][logo]overlay=W-w-120:70" \
             -c:v libx264 -preset ultrafast -c:a aac -f flv \
             "rtmp://vsu.okcdn.ru/input/14611275587311_15327401544431_u6cwcdvuta"
             
