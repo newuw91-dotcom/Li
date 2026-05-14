@@ -1,4 +1,4 @@
-name: Live Stream - Final Optimized
+name: Live Stream - True Live Fix
 
 on:
   workflow_dispatch:
@@ -15,7 +15,7 @@ jobs:
           sudo apt-get install -y ffmpeg
           pip install streamlink --quiet
 
-      - name: Start Stream Engine
+      - name: Start True Live Engine
         env:
           STREAM_URL: "https://stream.supertv.gg:3001/supertv/sport/stv1/ch1/adaptive.m3u8"
           RTMP_URL: "rtmp://vsu.okcdn.ru/input/14574023089903_15258718964463_f7662l35iu"
@@ -32,13 +32,11 @@ jobs:
             streamlink \
               --stdout \
               --loglevel warning \
-              --hls-live-restart \
-              --hls-live-edge 3 \
+              --hls-live-edge 4 \
               --hls-segment-attempts 5 \
-              --hls-segment-timeout 15 \
+              --hls-segment-timeout 20 \
               --hls-timeout 60 \
               --stream-segment-threads 4 \
-              --stream-segment-attempts 5 \
               --ringbuffer-size 64M \
               --stream-sorting-excludes "<720p" \
               --http-no-ssl-verify \
@@ -46,33 +44,30 @@ jobs:
               --http-header "User-Agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" \
               --http-header "Referer=https://supertv.gg/" \
               --http-header "Origin=https://supertv.gg" \
-              --retry-streams 5 \
-              --retry-max 10 \
-              --retry-open 5 \
+              --retry-streams 10 \
+              --retry-max 999 \
+              --retry-open 10 \
               "hls://$STREAM_URL" best \
             | \
             ffmpeg \
               -loglevel warning \
               -use_wallclock_as_timestamps 1 \
               -thread_queue_size 65536 \
+              -analyzeduration 2000000 \
+              -probesize 2000000 \
               -i pipe:0 \
-              -fflags +genpts+igndts+nobuffer+discardcorrupt \
+              -fflags +genpts+igndts+discardcorrupt \
+              -avoid_negative_ts make_zero \
               -c:v copy \
               -c:a copy \
               -map 0:v:0 \
               -map 0:a:0 \
-              -max_interleave_delta 0 \
-              -reconnect 1 \
-              -reconnect_at_eof 1 \
-              -reconnect_streamed 1 \
-              -reconnect_delay_max 10 \
+              -max_interleave_delta 500000 \
               -f flv \
-              -flvflags no_sequence_end \
               "$RTMP_URL"
 
             EXIT_CODE=$?
-            echo "⚠️ Stopped (exit: $EXIT_CODE) — reconnecting in ${BACKOFF}s..."
-            
+            echo "⚠️ Stopped (exit: $EXIT_CODE) — retry in ${BACKOFF}s..."
             [ $EXIT_CODE -ne 0 ] && BACKOFF=$((BACKOFF < 15 ? BACKOFF + 2 : 15)) || BACKOFF=3
             sleep $BACKOFF
           done
