@@ -1,4 +1,4 @@
-name: APiX TV High-Res Stable Streamer
+name: APiX TV Armored Streamer (Anti-Drop)
 
 on:
   workflow_dispatch:
@@ -13,7 +13,7 @@ jobs:
           sudo apt-get install -y ffmpeg python3-pip jq curl
           pip3 install streamlink
 
-      - name: Broadcast Stream (Ringbuffer & Zero Latency)
+      - name: Broadcast Stream (Heavy Buffer & Instant Retry)
         run: |
           while true; do
             echo "Fetching fresh dynamic URL from panel..."
@@ -21,14 +21,24 @@ jobs:
             STREAM_URL=$(echo $DATA | jq -r '.url')
             USER_AGENT=$(echo $DATA | jq -r '.useragent')
             
-            echo "Starting APiX TV stream with 64M Ringbuffer for maximum stability..."
+            echo "Starting APiX TV Armored Stream..."
             
-            streamlink --stdout --ringbuffer-size 64M \
+            # 1. --dash-live-edge 8: البقاء في وسط البث والابتعاد عن النهاية المهددة بالانقطاع
+            # 2. --retry-streams 10 & --retry-max 50: إعادة المحاولة بشراسة وبسرعة عند انقطاع اللقطات
+            # 3. --ringbuffer-size 128M: مضاعفة خزان البيانات لامتصاص أي صدمة
+            
+            streamlink --stdout \
+            --dash-live-edge 8 \
+            --retry-streams 10 \
+            --retry-max 50 \
+            --stream-segment-timeout 10 \
+            --stream-timeout 120 \
+            --ringbuffer-size 128M \
             --http-header "User-Agent=$USER_AGENT" "dash://$STREAM_URL" best | \
-            ffmpeg -thread_queue_size 2048 -i pipe:0 \
+            ffmpeg -thread_queue_size 4096 -i pipe:0 \
             -c:v libx264 -preset ultrafast -tune zerolatency -b:v 6400k -maxrate 6400k -bufsize 12800k -c:a aac -b:a 128k -f flv \
             "rtmp://vsu.okcdn.ru/input/14611275587311_15327401544431_u6cwcdvuta"
             
-            echo "Stream disconnected! Reconnecting in 3 seconds..."
-            sleep 3
+            echo "FFmpeg exited! Reconnecting the entire process in 2 seconds..."
+            sleep 2
           done
