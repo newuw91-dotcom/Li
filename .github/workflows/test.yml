@@ -1,7 +1,7 @@
-name: test - Fixed v3
+name: test - Direct Push Pro
 
 on:
-  workflow_dispatch:
+  workflow_dispatch: # تشغيل يدوي بضغطة زر
 
 jobs:
   stream:
@@ -15,8 +15,9 @@ jobs:
           sudo apt-get install -y ffmpeg
           pip install streamlink --quiet
 
-      - name: Start Stream Engine
+      - name: Start Direct Stream Engine
         env:
+          # الرابط الجديد الذي زودتني به
           STREAM_URL: "http://po.vibertv.online:2086/live/11/11/623874.m3u8"
           RTMP_URL: "rtmp://vsu.okcdn.ru/input/14574023089903_15258718964463_f7662l35iu"
         run: |
@@ -26,47 +27,41 @@ jobs:
           while true; do
             RETRY_COUNT=$((RETRY_COUNT + 1))
             echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-            echo "🚀 [Attempt #$RETRY_COUNT] $(date '+%H:%M:%S UTC')"
+            echo "🚀 [Attempt #$RETRY_COUNT] Starting Direct Push..."
+            echo "⏰ Time: $(date '+%H:%M:%S UTC')"
             echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
+            # استدعاء أداة streamlink لجلب البث بأقصى سرعة
+            # --hls-live-edge 2: للبقاء في أقرب نقطة للبث الحي
+            # --stream-segment-threads 3: سحب 3 قطع فيديو معاً لضمان عدم توقف المشغل
+            
             streamlink \
               --stdout \
               --loglevel warning \
-              --hls-live-edge 4 \
-              --stream-segment-threads 4 \
-              --stream-segment-attempts 5 \
-              --stream-segment-timeout 20 \
-              --ringbuffer-size 64M \
-              --stream-sorting-excludes "<720p" \
+              --hls-live-restart \
+              --hls-live-edge 2 \
+              --stream-segment-threads 3 \
+              --ringbuffer-size 128M \
               --http-no-ssl-verify \
-              --http-timeout 30 \
-              --http-header "User-Agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" \
-              --http-header "Referer=https://supertv.gg/" \
-              --http-header "Origin=https://supertv.gg" \
-              --retry-streams 10 \
-              --retry-max 999 \
-              --retry-open 10 \
-              "$STREAM_URL" best \
+              --http-header "User-Agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" \
+              "hls://$STREAM_URL" best \
             | \
             ffmpeg \
               -loglevel warning \
               -use_wallclock_as_timestamps 1 \
               -thread_queue_size 65536 \
-              -analyzeduration 2000000 \
-              -probesize 2000000 \
               -i pipe:0 \
-              -fflags +genpts+igndts+discardcorrupt \
-              -avoid_negative_ts make_zero \
-              -c:v copy \
-              -c:a copy \
-              -map 0:v:0 \
-              -map 0:a:0 \
-              -max_interleave_delta 500000 \
+              -fflags +genpts+igndts+nobuffer+flush_packets \
+              -c copy \
+              -map 0 \
               -f flv \
+              -flvflags no_sequence_end \
               "$RTMP_URL"
 
             EXIT_CODE=$?
-            echo "⚠️ Stopped (exit: $EXIT_CODE) — retry in ${BACKOFF}s..."
+            echo "⚠️ Stream interrupted (exit: $EXIT_CODE) — Reconnecting in ${BACKOFF}s..."
+            
+            # نظام الانتظار الذكي في حال الانقطاع
             [ $EXIT_CODE -ne 0 ] && BACKOFF=$((BACKOFF < 15 ? BACKOFF + 2 : 15)) || BACKOFF=3
             sleep $BACKOFF
           done
