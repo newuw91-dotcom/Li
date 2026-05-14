@@ -1,0 +1,17 @@
+name: APiX TV Streamer
+
+on:
+  workflow_dispatch:
+
+jobs:
+  streaming:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install FFmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+
+      - name: Start Live Stream
+        run: |
+          ffmpeg -reconnect 1 -reconnect_at_eof 1 -reconnect_streamed 1 -reconnect_delay_max 5 \
+          -i "https://test-link.qpis.workers.dev/live.mpd" \
+          -c copy -f flv "rtmp://vsu.okcdn.ru/input/14611275587311_15327401544431_u6cwcdvuta"
