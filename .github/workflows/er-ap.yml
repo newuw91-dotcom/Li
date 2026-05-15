@@ -1,4 +1,4 @@
-name: Live Erthlink - Fixed v3
+name: Erthlink - Fixed v3
 
 on:
   workflow_dispatch:
@@ -18,7 +18,8 @@ jobs:
       - name: Start Stream Engine
         env:
           STREAM_URL: "https://stream.supertv.gg:3001/supertv/sport/stv1/ch1/adaptive.m3u8"
-          RTMP_URL: "rtmp://vsu.okcdn.ru/input/14574023089903_15258718964463_f7662l35iu"
+          # 🔐 تم تشفير وحماية رابط البث عبر السيكرت الأول للقناة الأولى بنجاح
+          RTMP_URL: ${{ secrets.OK_RTMP_URL_CH1 }}
         run: |
           RETRY_COUNT=0
           BACKOFF=3
