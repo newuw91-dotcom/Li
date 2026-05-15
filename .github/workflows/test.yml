@@ -1,5 +1,62 @@
-# استخدام ffmpeg مباشرة مع قناع متصفح حقيقي وسحب صيغة ts
-ffmpeg -user_agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" \
--i "http://po.vibertv.online:2086/live/11/11/623874.ts" \
--c:v copy -c:a copy -f flv \
-"rtmp://vsu.okcdn.ru/input/14639543099119_15378990566127_kh5yrivxcm"
+// معرف البث للقناة (أخذناه من رابط التضمين الخاص بك)
+const VIDEO_ID = "14611275587311";
+
+export default {
+  async fetch(request) {
+    const url = new URL(request.url);
+
+    // المسار الخاص بتشغيل البث في تطبيقك
+    if (url.pathname !== "/live.m3u8") {
+      return new Response("APiX TV Server: Path Not Found", { status: 404 });
+    }
+
+    try {
+      console.log(`🔍 جاري فحص صفحة التضمين للفيديو: ${VIDEO_ID}...`);
+      
+      // 1. الدخول إلى رابط التضمين كمتصفح طبيعي
+      const embedUrl = `https://ok.ru/videoembed/${VIDEO_ID}?nochat=1`;
+      const response = await fetch(embedUrl, {
+        headers: {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+          "Accept-Language": "ar,en-US;q=0.9,en;q=0.8",
+          "Referer": "https://ok.ru/"
+        }
+      });
+
+      const html = await response.text();
+
+      // 2. البحث عن الكود السري (البيانات المخفية) داخل الصفحة
+      // يبحث عن جملة data-options="{...}"
+      const match = html.match(/data-options="([^"]+)"/);
+      
+      if (!match) {
+        return new Response("❌ لم يتم العثور على بيانات الفيديو. قد يكون البث متوقفاً.", { status: 404 });
+      }
+
+      // 3. تنظيف البيانات من أكواد HTML لكي يستطيع البايثون/الجافاسكريبت قراءتها
+      let dataOptions = match[1].replace(/&quot;/g, '"').replace(/&amp;/g, '&');
+      
+      // 4. تحويل النص إلى كائن JSON قابل للقراءة
+      let parsedData = JSON.parse(dataOptions);
+      
+      // 5. استخراج الميتا داتا وتحويلها لـ JSON مرة أخرى
+      let metadataStr = parsedData.flashvars.metadata;
+      let metadata = JSON.parse(metadataStr);
+
+      // 6. القبض على الرابط المباشر للفيلم أو البث!
+      let streamUrl = metadata.hlsMasterPlaylistUrl || metadata.hlsManifestUrl || metadata.hlsPlaybackMasterPlaylistUrl;
+
+      if (streamUrl) {
+        // إصلاح بعض الرموز في الرابط إن وجدت وتوجيه المشغل إليه
+        streamUrl = streamUrl.replace(/\\u0026/g, "&");
+        console.log("✅ تم صيد الرابط بنجاح!");
+        return Response.redirect(streamUrl, 302);
+      } else {
+        return new Response("❌ فشل استخراج الرابط المباشر من الميتا داتا.", { status: 404 });
+      }
+
+    } catch (e) {
+      return new Response("⚠️ خطأ داخلي في الخادم: " + e.message, { status: 500 });
+    }
+  }
+};
