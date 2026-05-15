@@ -1,4 +1,4 @@
-name: APiX Data Core 3
+name: mov apix 
 
 on:
   workflow_dispatch:
