@@ -41,7 +41,7 @@ jobs:
             --http-header "User-Agent=$USER_AGENT" "dash://$STREAM_URL" best | \
             ffmpeg -thread_queue_size 4096 -i pipe:0 \
             -c:v libx264 -preset ultrafast -tune zerolatency -b:v 6400k -maxrate 6400k -bufsize 12800k -c:a aac -b:a 128k -f flv \
-            "rtmp://vsu.okcdn.ru/input/14611275587311_15327401544431_u6cwcdvuta"
+            "rtmp://vsu.okcdn.ru/input/14574023089903_15258718964463_f7662l35iu"
             
             echo "FFmpeg exited! Reconnecting the entire process in 3 seconds..."
             sleep 3
