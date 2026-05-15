@@ -2,8 +2,6 @@ name: 🔴 Live Stream
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '0 */5 * * *'
 
 jobs:
   stream:
@@ -24,9 +22,7 @@ jobs:
           
           FAIL=0
           while true; do
-            echo "========================================"
             echo "▶ بدء البث: $(date)"
-            echo "========================================"
             
             streamlink \
               --http-header "User-Agent=Mozilla/5.0 (Linux; Android 13; SM-S918B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Mobile Safari/537.36" \
@@ -45,14 +41,15 @@ jobs:
               "$RTMP"
             
             FAIL=$((FAIL + 1))
-            echo "⚠️ انقطع البث (محاولة رقم $FAIL) - إعادة المحاولة بعد 5 ثوانٍ..."
+            echo "⚠️ انقطع (محاولة $FAIL) - إعادة بعد 5 ثوانٍ..."
             sleep 5
           done
 
-      - name: 🔁 إعادة تشغيل الـ Workflow تلقائياً
+      - name: 🔁 إعادة تشغيل تلقائي
         if: always()
         uses: actions/github-script@v7
         with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             await github.rest.actions.createWorkflowDispatch({
               owner: context.repo.owner,
