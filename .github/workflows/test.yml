@@ -1,62 +1,62 @@
-// معرف البث للقناة (أخذناه من رابط التضمين الخاص بك)
-const VIDEO_ID = "14611275587311";
+name: 🔴 Live Stream
 
-export default {
-  async fetch(request) {
-    const url = new URL(request.url);
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 */5 * * *'
 
-    // المسار الخاص بتشغيل البث في تطبيقك
-    if (url.pathname !== "/live.m3u8") {
-      return new Response("APiX TV Server: Path Not Found", { status: 404 });
-    }
+jobs:
+  stream:
+    runs-on: ubuntu-latest
+    timeout-minutes: 355
 
-    try {
-      console.log(`🔍 جاري فحص صفحة التضمين للفيديو: ${VIDEO_ID}...`);
-      
-      // 1. الدخول إلى رابط التضمين كمتصفح طبيعي
-      const embedUrl = `https://ok.ru/videoembed/${VIDEO_ID}?nochat=1`;
-      const response = await fetch(embedUrl, {
-        headers: {
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-          "Accept-Language": "ar,en-US;q=0.9,en;q=0.8",
-          "Referer": "https://ok.ru/"
-        }
-      });
+    steps:
+      - name: 📦 تثبيت الأدوات
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg
+          pip3 install streamlink --quiet
 
-      const html = await response.text();
+      - name: 🔴 تشغيل البث مع إعادة التشغيل التلقائي
+        run: |
+          SOURCE="http://po.vibertv.online:2086/live/11/11/623874.m3u8"
+          RTMP="rtmp://vsu.okcdn.ru/input/14611275587311_15327401544431_u6cwcdvuta"
+          
+          FAIL=0
+          while true; do
+            echo "========================================"
+            echo "▶ بدء البث: $(date)"
+            echo "========================================"
+            
+            streamlink \
+              --http-header "User-Agent=Mozilla/5.0 (Linux; Android 13; SM-S918B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Mobile Safari/537.36" \
+              --stream-timeout 60 \
+              --retry-streams 5 \
+              --retry-max 0 \
+              --stdout \
+              "$SOURCE" best | \
+            ffmpeg \
+              -hide_banner \
+              -loglevel warning \
+              -re \
+              -i pipe:0 \
+              -c copy \
+              -f flv \
+              "$RTMP"
+            
+            FAIL=$((FAIL + 1))
+            echo "⚠️ انقطع البث (محاولة رقم $FAIL) - إعادة المحاولة بعد 5 ثوانٍ..."
+            sleep 5
+          done
 
-      // 2. البحث عن الكود السري (البيانات المخفية) داخل الصفحة
-      // يبحث عن جملة data-options="{...}"
-      const match = html.match(/data-options="([^"]+)"/);
-      
-      if (!match) {
-        return new Response("❌ لم يتم العثور على بيانات الفيديو. قد يكون البث متوقفاً.", { status: 404 });
-      }
-
-      // 3. تنظيف البيانات من أكواد HTML لكي يستطيع البايثون/الجافاسكريبت قراءتها
-      let dataOptions = match[1].replace(/&quot;/g, '"').replace(/&amp;/g, '&');
-      
-      // 4. تحويل النص إلى كائن JSON قابل للقراءة
-      let parsedData = JSON.parse(dataOptions);
-      
-      // 5. استخراج الميتا داتا وتحويلها لـ JSON مرة أخرى
-      let metadataStr = parsedData.flashvars.metadata;
-      let metadata = JSON.parse(metadataStr);
-
-      // 6. القبض على الرابط المباشر للفيلم أو البث!
-      let streamUrl = metadata.hlsMasterPlaylistUrl || metadata.hlsManifestUrl || metadata.hlsPlaybackMasterPlaylistUrl;
-
-      if (streamUrl) {
-        // إصلاح بعض الرموز في الرابط إن وجدت وتوجيه المشغل إليه
-        streamUrl = streamUrl.replace(/\\u0026/g, "&");
-        console.log("✅ تم صيد الرابط بنجاح!");
-        return Response.redirect(streamUrl, 302);
-      } else {
-        return new Response("❌ فشل استخراج الرابط المباشر من الميتا داتا.", { status: 404 });
-      }
-
-    } catch (e) {
-      return new Response("⚠️ خطأ داخلي في الخادم: " + e.message, { status: 500 });
-    }
-  }
-};
+      - name: 🔁 إعادة تشغيل الـ Workflow تلقائياً
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'stream.yml',
+              ref: 'main'
+            })
