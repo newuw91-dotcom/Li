@@ -14,15 +14,16 @@ jobs:
           pip3 install streamlink
 
       - name: Broadcast Stream (Heavy Buffer & Safe Fetch)
+        env:
+          # 🔐 ربطنا القناة بالسيكرت المخصص لها برقم 1
+          OK_RTMP_URL: ${{ secrets.OK_RTMP_URL_CH1 }}
         run: |
           while true; do
             echo "Fetching fresh dynamic URL from panel..."
-            # استخدمنا Cache-Control بدلاً من تغيير الرابط لضمان عدم تعطل لوحة التحكم
             DATA=$(curl -s -H "Cache-Control: no-cache" "https://foxtv7.com/panel/url-stream/bein1.json")
             STREAM_URL=$(echo $DATA | jq -r '.url')
             USER_AGENT=$(echo $DATA | jq -r '.useragent')
             
-            # جدار الحماية: إذا كان الرابط فارغاً بسبب ضعف النت أو اللوحة، انتظر ولا تفصل السيرفر
             if [ "$STREAM_URL" == "null" ] || [ -z "$STREAM_URL" ]; then
               echo "Error: Could not get stream URL. Retrying in 5 seconds..."
               sleep 5
@@ -31,7 +32,6 @@ jobs:
             
             echo "Starting APiX TV Armored Stream..."
             
-            # خزان 128 ميجا + إعادة المحاولة 50 مرة بشراسة بدون أوامر DASH الخاطئة
             streamlink --stdout \
             --retry-streams 10 \
             --retry-max 50 \
@@ -41,7 +41,7 @@ jobs:
             --http-header "User-Agent=$USER_AGENT" "dash://$STREAM_URL" best | \
             ffmpeg -thread_queue_size 4096 -i pipe:0 \
             -c:v libx264 -preset ultrafast -tune zerolatency -b:v 6400k -maxrate 6400k -bufsize 12800k -c:a aac -b:a 128k -f flv \
-            "rtmp://vsu.okcdn.ru/input/14574023089903_15258718964463_f7662l35iu"
+            "$OK_RTMP_URL"
             
             echo "FFmpeg exited! Reconnecting the entire process in 3 seconds..."
             sleep 3
