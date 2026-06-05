@@ -1,6 +1,6 @@
 name: APiX TV - Live Match Stream (1080p)
 
-# هذه الإضافة تجعل السكربت يظهر كزر تشغيل يدوي في واجهة جيت هب
+# ÙØ°Ù Ø§ÙØ¥Ø¶Ø§ÙØ© ØªØ¬Ø¹Ù Ø§ÙØ³ÙØ±Ø¨Øª ÙØ¸ÙØ± ÙØ²Ø± ØªØ´ØºÙÙ ÙØ¯ÙÙ ÙÙ ÙØ§Ø¬ÙØ© Ø¬ÙØª ÙØ¨
 on:
   workflow_dispatch: 
 
@@ -8,18 +8,18 @@ jobs:
   stream_match:
     runs-on: ubuntu-latest
     
-    # تحديد أقصى وقت للتشغيل المستمر (مثلاً 3 ساعات تكفي لأي مباراة لتجنب نسيانه يعمل)
+    # ØªØ­Ø¯ÙØ¯ Ø£ÙØµÙ ÙÙØª ÙÙØªØ´ØºÙÙ Ø§ÙÙØ³ØªÙØ± (ÙØ«ÙØ§Ù 3 Ø³Ø§Ø¹Ø§Øª ØªÙÙÙ ÙØ£Ù ÙØ¨Ø§Ø±Ø§Ø© ÙØªØ¬ÙØ¨ ÙØ³ÙØ§ÙÙ ÙØ¹ÙÙ)
     timeout-minutes: 180 
 
     steps:
-      - name: ⚙️ Install FFmpeg (Hardware Acceleration)
+      - name: âï¸ Install FFmpeg (Hardware Acceleration)
         run: |
           sudo apt-get update
           sudo apt-get install -y ffmpeg python3
 
-      - name: 🚀 Start 1080p Engine Pipeline
+      - name: ð Start 1080p Engine Pipeline
         env:
-          # ربط السيكرتس الخاصة بك
+          # Ø±Ø¨Ø· Ø§ÙØ³ÙÙØ±ØªØ³ Ø§ÙØ®Ø§ØµØ© Ø¨Ù
           CH2_URL: ${{ secrets.CH2_URL }}
           CH2_RTMP: ${{ secrets.OK_RTMP_URL_CH2 }}
         run: |
@@ -30,21 +30,21 @@ jobs:
           WORKER_BASE_URL="https://ostora-1.qpis.workers.dev"
 
           if [ -z "$CH2_URL" ] || [ -z "$CH2_RTMP" ]; then
-              echo "❌ Error: Secrets are missing!"
+              echo "â Error: Secrets are missing!"
               exit 1
           fi
 
-          # تنظيف الروابط
+          # ØªÙØ¸ÙÙ Ø§ÙØ±ÙØ§Ø¨Ø·
           CLEAN_CH2_URL=$(echo "$CH2_URL" | tr -d '\r\n ' | xargs)
           CLEAN_CH2_RTMP=$(echo "$CH2_RTMP" | tr -d '\r\n ' | xargs)
 
-          # التشفير إلى Base64
+          # Ø§ÙØªØ´ÙÙØ± Ø¥ÙÙ Base64
           B64_URL=$(python3 -c "import urllib.parse, base64, sys; print(urllib.parse.quote(base64.b64encode(sys.argv[1].encode()).decode()))" "$CLEAN_CH2_URL")
           FINAL_URL="${WORKER_BASE_URL}/?b64url=${B64_URL}"
 
-          echo "⚡ Encoding 1080p @ 50fps directly to OK.ru..."
+          echo "â¡ Encoding 1080p @ 50fps directly to OK.ru..."
 
-          # السكربت مجهز بأعلى جودة ممكنة للمباريات (1080p)
+          # Ø§ÙØ³ÙØ±Ø¨Øª ÙØ¬ÙØ² Ø¨Ø£Ø¹ÙÙ Ø¬ÙØ¯Ø© ÙÙÙÙØ© ÙÙÙØ¨Ø§Ø±ÙØ§Øª (1080p)
           ffmpeg \
             -hide_banner \
             -re \
@@ -66,7 +66,7 @@ jobs:
             -b:v 4500k \
             -maxrate 5000k \
             -bufsize 9000k \
-            -r 50 \
+            -r 25 \
             -g 100 \
             -c:a aac -b:a 128k \
             -f fifo \
