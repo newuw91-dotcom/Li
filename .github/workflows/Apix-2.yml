@@ -1,4 +1,4 @@
-name: APiX 2
+name: APiX TV - Live Match Stream (1080p + Logo)
 
 on:
   workflow_dispatch: 
@@ -59,7 +59,7 @@ jobs:
             -thread_queue_size 10240 \
             -i "$FINAL_URL" \
             -i logo.png \
-            -filter_complex "[1:v]format=rgba,colorchannelmixer=aa=0.85,scale=260:140[watermark];[0:v][watermark]overlay=W-w-80:70[outv]" \
+            -filter_complex "[1:v]format=rgba,colorchannelmixer=aa=0.85,scale=260:85[watermark];[0:v][watermark]overlay=W-w-40:35[outv]" \
             -map "[outv]" \
             -map 0:a:0 \
             -c:v libx264 \
