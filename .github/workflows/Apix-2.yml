@@ -1,48 +1,78 @@
-name: APiX TV 2
+name: APiX TV - Live Match Stream (1080p)
 
+# هذه الإضافة تجعل السكربت يظهر كزر تشغيل يدوي في واجهة جيت هب
 on:
-  workflow_dispatch:
+  workflow_dispatch: 
 
 jobs:
-  streaming:
+  stream_match:
     runs-on: ubuntu-latest
+    
+    # تحديد أقصى وقت للتشغيل المستمر (مثلاً 3 ساعات تكفي لأي مباراة لتجنب نسيانه يعمل)
+    timeout-minutes: 180 
+
     steps:
-      - name: Install Tools
+      - name: ⚙️ Install FFmpeg (Hardware Acceleration)
         run: |
           sudo apt-get update
-          sudo apt-get install -y ffmpeg python3-pip jq curl
-          pip3 install streamlink
+          sudo apt-get install -y ffmpeg python3
 
-      - name: Broadcast Stream (Heavy Buffer & Safe Fetch)
+      - name: 🚀 Start 1080p Engine Pipeline
         env:
-          # 🔐 ربط القناة بالسيكرت المخصص لها برقم 2
-          OK_RTMP_URL: ${{ secrets.OK_RTMP_URL_CH2 }}
+          # ربط السيكرتس الخاصة بك
+          CH2_URL: ${{ secrets.CH2_URL }}
+          CH2_RTMP: ${{ secrets.OK_RTMP_URL_CH2 }}
         run: |
-          while true; do
-            echo "Fetching fresh dynamic URL from panel for Channel 2..."
-            DATA=$(curl -s -H "Cache-Control: no-cache" "https://foxtv7.com/panel/url-stream/bein2.json")
-            STREAM_URL=$(echo $DATA | jq -r '.url')
-            USER_AGENT=$(echo $DATA | jq -r '.useragent')
-            
-            if [ "$STREAM_URL" == "null" ] || [ -z "$STREAM_URL" ]; then
-              echo "Error: Could not get stream URL. Retrying in 5 seconds..."
-              sleep 5
-              continue
-            fi
-            
-            echo "Starting APiX TV Armored Stream (Channel 2)..."
-            
-            streamlink --stdout \
-            --retry-streams 10 \
-            --retry-max 50 \
-            --stream-segment-timeout 10 \
-            --stream-timeout 120 \
-            --ringbuffer-size 128M \
-            --http-header "User-Agent=$USER_AGENT" "dash://$STREAM_URL" best | \
-            ffmpeg -thread_queue_size 4096 -i pipe:0 \
-            -c:v libx264 -preset ultrafast -tune zerolatency -b:v 6400k -maxrate 6400k -bufsize 12800k -c:a aac -b:a 128k -f flv \
-            "$OK_RTMP_URL"
-            
-            echo "FFmpeg exited! Reconnecting the entire process in 3 seconds..."
-            sleep 3
-          done
+          echo "Starting APiX TV High-Performance Engine..."
+          
+          USER_AGENT="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+          REFERER="https://www.maziika.shop/"
+          WORKER_BASE_URL="https://ostora-1.qpis.workers.dev"
+
+          if [ -z "$CH2_URL" ] || [ -z "$CH2_RTMP" ]; then
+              echo "❌ Error: Secrets are missing!"
+              exit 1
+          fi
+
+          # تنظيف الروابط
+          CLEAN_CH2_URL=$(echo "$CH2_URL" | tr -d '\r\n ' | xargs)
+          CLEAN_CH2_RTMP=$(echo "$CH2_RTMP" | tr -d '\r\n ' | xargs)
+
+          # التشفير إلى Base64
+          B64_URL=$(python3 -c "import urllib.parse, base64, sys; print(urllib.parse.quote(base64.b64encode(sys.argv[1].encode()).decode()))" "$CLEAN_CH2_URL")
+          FINAL_URL="${WORKER_BASE_URL}/?b64url=${B64_URL}"
+
+          echo "⚡ Encoding 1080p @ 50fps directly to OK.ru..."
+
+          # السكربت مجهز بأعلى جودة ممكنة للمباريات (1080p)
+          ffmpeg \
+            -hide_banner \
+            -re \
+            -user_agent "$USER_AGENT" \
+            -headers "Referer: $REFERER"$'\r\n'"Origin: https://www.maziika.shop"$'\r\n' \
+            -rw_timeout 15000000 \
+            -live_start_index 0 \
+            -fflags +genpts+discardcorrupt \
+            -reconnect 1 -reconnect_delay_max 5 \
+            -allowed_extensions js,json,ts,m3u8,key,txt,m4s,mp4 \
+            -protocol_whitelist file,http,https,tcp,tls,crypto,data \
+            -thread_queue_size 512000 \
+            -i "$FINAL_URL" \
+            -map 0:v:0 \
+            -map 0:a:0 \
+            -c:v libx264 \
+            -preset veryfast \
+            -tune zerolatency \
+            -b:v 4500k \
+            -maxrate 5000k \
+            -bufsize 9000k \
+            -r 50 \
+            -g 100 \
+            -c:a aac -b:a 128k \
+            -f fifo \
+            -fifo_format flv \
+            -drop_pkts_on_overflow 1 \
+            -attempt_recovery 1 \
+            -recovery_wait_time 2 \
+            -queue_size 200000 \
+            "$CLEAN_CH2_RTMP"
