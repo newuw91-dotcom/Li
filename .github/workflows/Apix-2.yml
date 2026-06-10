@@ -1,4 +1,4 @@
-name: APiX 2
+name: APiX TV - Live Stream Engine
 on:
   workflow_dispatch: 
 
@@ -9,19 +9,19 @@ jobs:
     timeout-minutes: 180 
 
     steps:
-      - name: âï¸ Install Dependencies
+      - name: ⚙️ Install Dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y ffmpeg python3 wget
 
-      - name: ð Start APiX Engine Pipeline
+      - name: 🚀 Start APiX Engine Pipeline
         env:
           CH2_URL: ${{ secrets.CH2_URL }}
           CH2_RTMP: ${{ secrets.OK_RTMP_URL_CH2 }}
         run: |
           echo "Starting APiX TV High-Performance Engine..."
           
-          echo "ð¥ Downloading channel logo..."
+          echo "📥 Downloading channel logo..."
           wget -q -O logo.png "https://iili.io/BLkTCFt.png"
           
           USER_AGENT="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
@@ -29,7 +29,7 @@ jobs:
           WORKER_BASE_URL="https://live-get-ostora.qpis.workers.dev"
 
           if [ -z "$CH2_URL" ] || [ -z "$CH2_RTMP" ]; then
-              echo "â Error: Secrets are missing!"
+              echo "❌ Error: Secrets are missing!"
               exit 1
           fi
 
@@ -39,7 +39,7 @@ jobs:
           B64_URL=$(python3 -c "import urllib.parse, base64, sys; print(urllib.parse.quote(base64.b64encode(sys.argv[1].encode()).decode()))" "$CLEAN_CH2_URL")
           FINAL_URL="${WORKER_BASE_URL}/?b64url=${B64_URL}"
 
-          echo "â¡ Applying Logo, Buffering 8s Delay, and Streaming at 1080p..."
+          echo "⚡ Applying Logo, Buffering 8s Delay, and Streaming at 1080p..."
 
           ffmpeg \
             -hide_banner \
