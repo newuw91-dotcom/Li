@@ -36,6 +36,7 @@ jobs:
           CLEAN_CH2_URL=$(echo "$CH2_URL" | tr -d '\r\n ' | xargs)
           CLEAN_CH2_RTMP=$(echo "$CH2_RTMP" | tr -d '\r\n ' | xargs)
 
+          # تشفير الرابط الأساسي بـ Base64 لتمريره بأمان للوركر
           B64_URL=$(python3 -c "import urllib.parse, base64, sys; print(urllib.parse.quote(base64.b64encode(sys.argv[1].encode()).decode()))" "$CLEAN_CH2_URL")
           FINAL_URL="${WORKER_BASE_URL}/?b64url=${B64_URL}"
 
@@ -50,7 +51,7 @@ jobs:
             -live_start_index -2 \
             -fflags +genpts+discardcorrupt \
             -reconnect 1 -reconnect_delay_max 5 \
-            -allowed_extensions js,json,ts,m3u8,key,txt,m4s,mp4 \
+            -allowed_extensions ALL \
             -protocol_whitelist file,http,https,tcp,tls,crypto,data \
             -thread_queue_size 10240 \
             -i "$FINAL_URL" \
