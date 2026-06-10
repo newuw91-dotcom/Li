@@ -1,3 +1,47 @@
+name: APiX TV - Live Stream Engine
+on:
+  workflow_dispatch: 
+
+jobs:
+  stream_match:
+    runs-on: ubuntu-latest
+    
+    timeout-minutes: 180 
+
+    steps:
+      - name: ⚙️ Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg python3 wget
+
+      - name: 🚀 Start APiX Engine Pipeline
+        env:
+          CH2_URL: ${{ secrets.CH2_URL }}
+          CH2_RTMP: ${{ secrets.OK_RTMP_URL_CH2 }}
+        run: |
+          echo "Starting APiX TV High-Performance Engine..."
+          
+          echo "📥 Downloading channel logo..."
+          wget -q -O logo.png "https://iili.io/BLkTCFt.png"
+          
+          USER_AGENT="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+          REFERER="https://www.maziika.shop/"
+          WORKER_BASE_URL="https://live-get-ostora.qpis.workers.dev"
+
+          if [ -z "$CH2_URL" ] || [ -z "$CH2_RTMP" ]; then
+              echo "❌ Error: Secrets are missing!"
+              exit 1
+          fi
+
+          CLEAN_CH2_URL=$(echo "$CH2_URL" | tr -d '\r\n ' | xargs)
+          CLEAN_CH2_RTMP=$(echo "$CH2_RTMP" | tr -d '\r\n ' | xargs)
+
+          # تشفير الرابط بـ Base64 لتمريره للوركر بأمان
+          B64_URL=$(python3 -c "import urllib.parse, base64, sys; print(urllib.parse.quote(base64.b64encode(sys.argv[1].encode()).decode()))" "$CLEAN_CH2_URL")
+          FINAL_URL="${WORKER_BASE_URL}/?b64url=${B64_URL}"
+
+          echo "⚡ Applying Dynamic Logo, Stabilizing FPS, and Streaming..."
+
           ffmpeg \
             -hide_banner \
             -re \
