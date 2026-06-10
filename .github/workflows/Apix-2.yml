@@ -1,47 +1,3 @@
-name: APiX TV - Live Stream Engine
-on:
-  workflow_dispatch: 
-
-jobs:
-  stream_match:
-    runs-on: ubuntu-latest
-    
-    timeout-minutes: 180 
-
-    steps:
-      - name: ⚙️ Install Dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y ffmpeg python3 wget
-
-      - name: 🚀 Start APiX Engine Pipeline
-        env:
-          CH2_URL: ${{ secrets.CH2_URL }}
-          CH2_RTMP: ${{ secrets.OK_RTMP_URL_CH2 }}
-        run: |
-          echo "Starting APiX TV High-Performance Engine..."
-          
-          echo "📥 Downloading channel logo..."
-          wget -q -O logo.png "https://iili.io/BLkTCFt.png"
-          
-          USER_AGENT="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-          REFERER="https://www.maziika.shop/"
-          WORKER_BASE_URL="https://live-get-ostora.qpis.workers.dev"
-
-          if [ -z "$CH2_URL" ] || [ -z "$CH2_RTMP" ]; then
-              echo "❌ Error: Secrets are missing!"
-              exit 1
-          fi
-
-          CLEAN_CH2_URL=$(echo "$CH2_URL" | tr -d '\r\n ' | xargs)
-          CLEAN_CH2_RTMP=$(echo "$CH2_RTMP" | tr -d '\r\n ' | xargs)
-
-          # تشفير الرابط الأساسي بـ Base64 لتمريره بأمان للوركر
-          B64_URL=$(python3 -c "import urllib.parse, base64, sys; print(urllib.parse.quote(base64.b64encode(sys.argv[1].encode()).decode()))" "$CLEAN_CH2_URL")
-          FINAL_URL="${WORKER_BASE_URL}/?b64url=${B64_URL}"
-
-          echo "⚡ Applying Logo, Buffering 8s Delay, and Streaming at 1080p..."
-
           ffmpeg \
             -hide_banner \
             -re \
@@ -56,16 +12,16 @@ jobs:
             -thread_queue_size 10240 \
             -i "$FINAL_URL" \
             -i logo.png \
-            -filter_complex "[1:v]format=rgba,colorchannelmixer=aa=0.85,scale=290:60[watermark];[0:v][watermark]overlay=W-w-50:60[outv]" \
+            -filter_complex "[0:v]fps=30[vid];[1:v]format=rgba,colorchannelmixer=aa=0.85[logo];[logo][vid]scale2ref=w=oh*mdar:h=ih*0.12[scaled_logo][main];[main][scaled_logo]overlay=W-w-(W*0.05):H*0.05,format=yuv420p[outv]" \
             -map "[outv]" \
             -map 0:a:0 \
             -c:v libx264 \
-            -preset veryfast \
+            -preset ultrafast \
             -tune zerolatency \
-            -b:v 4500k \
-            -maxrate 5000k \
-            -bufsize 9000k \
-            -g 50 \
+            -b:v 3000k \
+            -maxrate 3500k \
+            -bufsize 6000k \
+            -g 60 \
             -c:a aac -b:a 128k \
             -f fifo \
             -fifo_format flv \
