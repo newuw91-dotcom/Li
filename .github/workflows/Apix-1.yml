@@ -15,12 +15,12 @@ jobs:
 
       - name: Broadcast Stream (Heavy Buffer & Safe Fetch)
         env:
-          # 🔐 ربطنا القناة بالسيكرت المخصص لها برقم 1
+          # ð Ø±Ø¨Ø·ÙØ§ Ø§ÙÙÙØ§Ø© Ø¨Ø§ÙØ³ÙÙØ±Øª Ø§ÙÙØ®ØµØµ ÙÙØ§ Ø¨Ø±ÙÙ 1
           OK_RTMP_URL: ${{ secrets.OK_RTMP_URL_CH1 }}
         run: |
           while true; do
             echo "Fetching fresh dynamic URL from panel..."
-            DATA=$(curl -s -H "Cache-Control: no-cache" "https://foxtv7.com/panel/url-stream/bein1.json")
+            DATA=$(curl -s -H "Cache-Control: no-cache" "https://www.egyfilm.xyz/stream/Bein_max_111.mpd")
             STREAM_URL=$(echo $DATA | jq -r '.url')
             USER_AGENT=$(echo $DATA | jq -r '.useragent')
             
