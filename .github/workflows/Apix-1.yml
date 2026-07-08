@@ -1,48 +1,28 @@
-name: APiX TV 1
+name: APiX TV GitHub Engine
 
 on:
-  workflow_dispatch:
+  workflow_dispatch: # هذا الأمر يسمح لك بتشغيل البث يدوياً متى أردت بضغطة زر
 
 jobs:
-  streaming:
+  broadcaster:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Install Tools
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install Arsenal (FFmpeg & Streamlink)
         run: |
           sudo apt-get update
-          sudo apt-get install -y ffmpeg python3-pip jq curl
+          sudo apt-get install -y ffmpeg
           pip3 install streamlink
 
-      - name: Broadcast Stream (Heavy Buffer & Safe Fetch)
+      - name: Launch Ultimate Mobile Core (Unmodified)
         env:
-          # ð Ø±Ø¨Ø·ÙØ§ Ø§ÙÙÙØ§Ø© Ø¨Ø§ÙØ³ÙÙØ±Øª Ø§ÙÙØ®ØµØµ ÙÙØ§ Ø¨Ø±ÙÙ 1
-          OK_RTMP_URL: ${{ secrets.OK_RTMP_URL_CH1 }}
+          CH1_URL: ${{ secrets.CH1_URL }}
+          CH1_RTMP: ${{ secrets.CH1_RTMP }}
         run: |
-          while true; do
-            echo "Fetching fresh dynamic URL from panel..."
-            DATA=$(curl -s -H "Cache-Control: no-cache" "https://www.egyfilm.xyz/stream/Bein_max_111.mpd")
-            STREAM_URL=$(echo $DATA | jq -r '.url')
-            USER_AGENT=$(echo $DATA | jq -r '.useragent')
-            
-            if [ "$STREAM_URL" == "null" ] || [ -z "$STREAM_URL" ]; then
-              echo "Error: Could not get stream URL. Retrying in 5 seconds..."
-              sleep 5
-              continue
-            fi
-            
-            echo "Starting APiX TV Armored Stream..."
-            
-            streamlink --stdout \
-            --retry-streams 10 \
-            --retry-max 50 \
-            --stream-segment-timeout 10 \
-            --stream-timeout 120 \
-            --ringbuffer-size 128M \
-            --http-header "User-Agent=$USER_AGENT" "dash://$STREAM_URL" best | \
-            ffmpeg -thread_queue_size 4096 -i pipe:0 \
-            -c:v libx264 -preset ultrafast -tune zerolatency -b:v 6400k -maxrate 6400k -bufsize 12800k -c:a aac -b:a 128k -f flv \
-            "$OK_RTMP_URL"
-            
-            echo "FFmpeg exited! Reconnecting the entire process in 3 seconds..."
-            sleep 3
-          done
+          echo "🚀 Starting APiX TV Engine on GitHub Actions (Trusted Network)..."
+          
+          # الكود الخاص بك منسوخ حرفياً كما طلبت، مع استخدام المتغيرات السرية للروابط
+          streamlink --http-header "User-Agent=And\$MyTV" --stream-segment-threads 4 --stream-segment-timeout 10 --stream-segment-attempts 10 --hls-live-edge 15 --ringbuffer-size 64M --stdout "$CH1_URL" best | ffmpeg -nostdin -hide_banner -re -thread_queue_size 1024 -i pipe:0 -c:v copy -c:a aac -b:a 128k -max_muxing_queue_size 4096 -f flv "$CH1_RTMP"
