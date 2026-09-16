@@ -1,7 +1,7 @@
-name: APiX TV GitHub Engine
+name: APiX TV GitHub Engine 4K
 
 on:
-  workflow_dispatch: # هذا الأمر يسمح لك بتشغيل البث يدوياً متى أردت بضغطة زر
+  workflow_dispatch: # التشغيل اليدوي بضغطة زر
 
 jobs:
   broadcaster:
@@ -11,18 +11,26 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Install Arsenal (FFmpeg & Streamlink)
+      - name: Install Arsenal (FFmpeg)
         run: |
           sudo apt-get update
           sudo apt-get install -y ffmpeg
-          pip3 install streamlink
 
-      - name: Launch Ultimate Mobile Core (Unmodified)
+      - name: Launch Ultimate 4K Core
         env:
+          # سحب الروابط من أسرار المستودع
           CH1_URL: ${{ secrets.CH1_URL }}
           CH1_RTMP: ${{ secrets.CH1_RTMP }}
         run: |
-          echo "🚀 Starting APiX TV Engine on GitHub Actions (Trusted Network)..."
+          echo "🚀 Starting 4K APiX TV Engine on GitHub Actions..."
           
-          # الكود الخاص بك منسوخ حرفياً كما طلبت، مع استخدام المتغيرات السرية للروابط
-          streamlink --http-header "User-Agent=And\$MyTV" --stream-segment-threads 4 --stream-segment-timeout 10 --stream-segment-attempts 10 --hls-live-edge 15 --ringbuffer-size 64M --stdout "$CH1_URL" best | ffmpeg -nostdin -hide_banner -re -thread_queue_size 1024 -i pipe:0 -c:v copy -c:a aac -b:a 128k -max_muxing_queue_size 4096 -f flv "$CH1_RTMP"
+          ffmpeg -nostdin -hide_banner \
+          -err_detect ignore_err \
+          -headers "Cache-Control: no-cache, no-store\r\nPragma: no-cache\r\n" \
+          -reconnect 1 -reconnect_at_eof 1 -reconnect_streamed 1 -reconnect_delay_max 2 \
+          -i "$CH1_URL" \
+          -vf "scale=3840:2160,fps=30" \
+          -c:v libx264 -preset ultrafast -profile:v high -b:v 12000k -maxrate 14000k -bufsize 24000k \
+          -c:a aac -b:a 128k \
+          -max_muxing_queue_size 8192 -f flv -flvflags no_duration_filesize \
+          "$CH1_RTMP"
