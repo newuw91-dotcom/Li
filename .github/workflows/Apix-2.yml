@@ -1,76 +1,41 @@
-name: APiX TV - Live Stream Engine
+name: APiX TV GitHub Engine 4K HDR Look
+
 on:
-  workflow_dispatch: 
+  workflow_dispatch:
 
 jobs:
-  stream_match:
+  broadcaster:
     runs-on: ubuntu-latest
-    
-    timeout-minutes: 180 
 
     steps:
-      - name: ⚙️ Install Dependencies
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install Arsenal (FFmpeg)
         run: |
           sudo apt-get update
-          sudo apt-get install -y ffmpeg python3 wget
+          sudo apt-get install -y ffmpeg
 
-      - name: 🚀 Start APiX Engine Pipeline
+      - name: Launch Ultimate 4K Core
         env:
-          CH2_URL: ${{ secrets.CH2_URL }}
-          CH2_RTMP: ${{ secrets.OK_RTMP_URL_CH2 }}
+          CH1_URL: ${{ secrets.CH1_URL }}
+          CH1_RTMP: ${{ secrets.CH1_RTMP }}
         run: |
-          echo "Starting APiX TV High-Performance Engine..."
+          echo "🚀 Starting 4K APiX TV Engine on GitHub Actions (With Fake-HDR & Sharpness)..."
           
-          echo "📥 Downloading channel logo..."
-          wget -q -O logo.png "https://iili.io/BLkTCFt.png"
-          
-          USER_AGENT="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-          REFERER="https://www.maziika.shop/"
-          WORKER_BASE_URL="https://live-get-ostora.qpis.workers.dev"
-
-          if [ -z "$CH2_URL" ] || [ -z "$CH2_RTMP" ]; then
-              echo "❌ Error: Secrets are missing!"
-              exit 1
-          fi
-
-          CLEAN_CH2_URL=$(echo "$CH2_URL" | tr -d '\r\n ' | xargs)
-          CLEAN_CH2_RTMP=$(echo "$CH2_RTMP" | tr -d '\r\n ' | xargs)
-
-          # تشفير الرابط بـ Base64 لتمريره للوركر بأمان
-          B64_URL=$(python3 -c "import urllib.parse, base64, sys; print(urllib.parse.quote(base64.b64encode(sys.argv[1].encode()).decode()))" "$CLEAN_CH2_URL")
-          FINAL_URL="${WORKER_BASE_URL}/?b64url=${B64_URL}"
-
-          echo "⚡ Applying Dynamic Logo, Stabilizing FPS, and Streaming..."
-
-          ffmpeg \
-            -hide_banner \
-            -re \
-            -user_agent "$USER_AGENT" \
-            -headers "Referer: $REFERER"$'\r\n'"Origin: https://www.maziika.shop"$'\r\n' \
-            -rw_timeout 15000000 \
-            -live_start_index -2 \
-            -fflags +genpts+discardcorrupt \
-            -reconnect 1 -reconnect_delay_max 5 \
-            -allowed_extensions ALL \
-            -protocol_whitelist file,http,https,tcp,tls,crypto,data \
-            -thread_queue_size 10240 \
-            -i "$FINAL_URL" \
-            -i logo.png \
-            -filter_complex "[0:v]fps=30[vid];[1:v]format=rgba,colorchannelmixer=aa=0.85[logo];[logo][vid]scale2ref=w=oh*mdar:h=ih*0.12[scaled_logo][main];[main][scaled_logo]overlay=W-w-(W*0.05):H*0.05,format=yuv420p[outv]" \
-            -map "[outv]" \
-            -map 0:a:0 \
-            -c:v libx264 \
-            -preset ultrafast \
-            -tune zerolatency \
-            -b:v 3000k \
-            -maxrate 3500k \
-            -bufsize 6000k \
-            -g 60 \
+          while true; do
+            echo "🔄 (Re)Starting stream..."
+            ffmpeg -nostdin -hide_banner \
+            -err_detect ignore_err \
+            -headers "Cache-Control: no-cache, no-store\r\nPragma: no-cache\r\n" \
+            -reconnect 1 -reconnect_at_eof 1 -reconnect_streamed 1 -reconnect_delay_max 2 \
+            -i "$CH1_URL" \
+            -vf "scale=3840:2160:flags=lanczos,eq=saturation=1.35:contrast=1.15:brightness=0.02,unsharp=5:5:0.8:3:3:0.4,fps=30" \
+            -c:v libx264 -preset ultrafast -profile:v high -b:v 12000k -maxrate 14000k -bufsize 24000k \
             -c:a aac -b:a 128k \
-            -f fifo \
-            -fifo_format flv \
-            -drop_pkts_on_overflow 1 \
-            -attempt_recovery 1 \
-            -recovery_wait_time 2 \
-            -queue_size 200000 \
-            "$CLEAN_CH2_RTMP"
+            -max_muxing_queue_size 8192 -f flv -flvflags no_duration_filesize \
+            "$CH1_RTMP"
+            
+            echo "⚠️ Stream interrupted! Restarting in 3 seconds to keep action alive..."
+            sleep 3
+          done
