@@ -1,28 +1,204 @@
 #EXTM3U
 
-#EXTINF:-1 tvg-logo="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEh6OZv4G12fPQDqzGWxrwtj0V612NuPYwQH7kWw7tfgnBfS7usq6ZSI-_FpcPQsCBdtvsOEiizNKuKMg0QmgcrZuQzinwqQrQieXJTqZpP4B2o8MaqyUyjDBIxXiI7Yp6zfVTqth23CQcAf5rt6E_mDqPERhBt8rrh11-4kwfthEB02g1xQqY7KWkXpLsA6/s400/4k9.png",4K UHD
-https://hls.tvhub.tv/hls/4k_bein_sports_uhd_4k/index.m3u8
+# ============================================
+# SECTION 1: BEIN SPORTS (WORKERS SERVER)
+# ============================================
 
-#EXTINF:-1 tvg-logo="https://iili.io/3gMLe29.png",Bein sport 1
-https://hls.tvhub.tv/hls/bein_sports_1_n_hevc/index.m3u8
+#EXTINF:-1 tvg-id="beIN_SPORTS_4K" tvg-name="beIN SPORTS 4K" tvg-logo="https://raw.githubusercontent.com/4K-TV/LOGO/main/bein4k.png" group-title="beIN Sports",beIN SPORTS 4K
+https://m3u.hoev.workers.dev/live/bein4k/index.m3u8
 
-#EXTINF:-1 tvg-logo="https://iili.io/3gMLe29.png",Bein sport 2
-https://hls.tvhub.tv/hls/bein_sports_2_n_hevc/index.m3u8
+#EXTINF:-1 tvg-id="beIN_SPORTS_MAX_1" tvg-name="beIN SPORTS MAX 1" tvg-logo="https://raw.githubusercontent.com/4K-TV/LOGO/main/beinmax1.png" group-title="beIN Sports",beIN SPORTS MAX 1
+https://m3u.hoev.workers.dev/live/beinmax1/index.m3u8
 
-#EXTINF:-1 tvg-logo="https://iili.io/3gMLe29.png",Bein sport 3
-https://hls.tvhub.tv/hls/bein_sports_3_n_hevc/index.m3u8
+#EXTINF:-1 tvg-id="beIN_SPORTS_MAX_2" tvg-name="beIN SPORTS MAX 2" tvg-logo="https://raw.githubusercontent.com/4K-TV/LOGO/main/beinmax2.png" group-title="beIN Sports",beIN SPORTS MAX 2
+https://m3u.hoev.workers.dev/live/beinmax2/index.m3u8
 
-#EXTINF:-1 tvg-logo="https://iili.io/3gMLe29.png",Bein sport 4
-https://hls.tvhub.tv/hls/bein_sports_4_n_hevc/index.m3u8
+#EXTINF:-1 tvg-id="beIN_SPORTS_MAX_3" tvg-name="beIN SPORTS MAX 3" tvg-logo="https://raw.githubusercontent.com/4K-TV/LOGO/main/beinmax3.png" group-title="beIN Sports",beIN SPORTS MAX 3
+https://m3u.hoev.workers.dev/live/beinmax3/index.m3u8
 
-#EXTINF:-1 tvg-logo="https://iili.io/3gMLe29.png",Bein sport 5
-https://hls.tvhub.tv/hls/bein_sports_5_n_hevc/index.m3u8
+#EXTINF:-1 tvg-id="beIN_SPORTS_MAX_4" tvg-name="beIN SPORTS MAX 4" tvg-logo="https://raw.githubusercontent.com/4K-TV/LOGO/main/beinmax4.png" group-title="beIN Sports",beIN SPORTS MAX 4
+https://m3u.hoev.workers.dev/live/beinmax4/index.m3u8
 
-#EXTINF:-1 tvg-logo="https://iili.io/3gMLe29.png",Bein sport 6
-https://hls.tvhub.tv/hls/bein_sports_6_n_hevc/index.m3u8
+#EXTINF:-1 tvg-id="beIN_SPORTS_MAX_5" tvg-name="beIN SPORTS MAX 5" tvg-logo="https://raw.githubusercontent.com/4K-TV/LOGO/main/beinmax5.png" group-title="beIN Sports",beIN SPORTS MAX 5
+https://m3u.hoev.workers.dev/live/beinmax5/index.m3u8
 
-#EXTINF:-1 tvg-logo="https://iili.io/3gMLe29.png",Bein sport 7
-https://hls.tvhub.tv/hls/bein_sports_7_n_hevc/index.m3u8
+#EXTINF:-1 tvg-id="beIN_SPORTS_MAX_6" tvg-name="beIN SPORTS MAX 6" tvg-logo="https://raw.githubusercontent.com/4K-TV/LOGO/main/beinmax6.png" group-title="beIN Sports",beIN SPORTS MAX 6
+https://m3u.hoev.workers.dev/live/beinmax6/index.m3u8
 
-#EXTINF:-1 tvg-logo="https://iili.io/3gMLe29.png",Bein sport 8
-https://hls.tvhub.tv/hls/bein_sports_8_n_hevc/index.m3u8
+#EXTINF:-1 tvg-id="beIN_SPORTS_1" tvg-name="beIN SPORTS 1" tvg-logo="https://raw.githubusercontent.com/4K-TV/LOGO/main/bein1.png" group-title="beIN Sports",beIN SPORTS 1
+https://m3u.hoev.workers.dev/live/bein1/index.m3u8
+
+#EXTINF:-1 tvg-id="beIN_SPORTS_2" tvg-name="beIN SPORTS 2" tvg-logo="https://raw.githubusercontent.com/4K-TV/LOGO/main/bein2.png" group-title="beIN Sports",beIN SPORTS 2
+https://m3u.hoev.workers.dev/live/bein2/index.m3u8
+
+#EXTINF:-1 tvg-id="beIN_SPORTS_3" tvg-name="beIN SPORTS 3" tvg-logo="https://raw.githubusercontent.com/4K-TV/LOGO/main/bein3.png" group-title="beIN Sports",beIN SPORTS 3
+https://m3u.hoev.workers.dev/live/bein3/index.m3u8
+
+#EXTINF:-1 tvg-id="beIN_SPORTS_4" tvg-name="beIN SPORTS 4" tvg-logo="https://raw.githubusercontent.com/4K-TV/LOGO/main/bein4.png" group-title="beIN Sports",beIN SPORTS 4
+https://m3u.hoev.workers.dev/live/bein4/index.m3u8
+
+#EXTINF:-1 tvg-id="beIN_SPORTS_5" tvg-name="beIN SPORTS 5" tvg-logo="https://raw.githubusercontent.com/4K-TV/LOGO/main/bein5.png" group-title="beIN Sports",beIN SPORTS 5
+https://m3u.hoev.workers.dev/live/bein5/index.m3u8
+
+#EXTINF:-1 tvg-id="beIN_SPORTS_6" tvg-name="beIN SPORTS 6" tvg-logo="https://raw.githubusercontent.com/4K-TV/LOGO/main/bein6.png" group-title="beIN Sports",beIN SPORTS 6
+https://m3u.hoev.workers.dev/live/bein6/index.m3u8
+
+#EXTINF:-1 tvg-id="beIN_SPORTS_7" tvg-name="beIN SPORTS 7" tvg-logo="https://raw.githubusercontent.com/4K-TV/LOGO/main/bein7.png" group-title="beIN Sports",beIN SPORTS 7
+https://m3u.hoev.workers.dev/live/bein7/index.m3u8
+
+#EXTINF:-1 tvg-id="beIN_SPORTS_8" tvg-name="beIN SPORTS 8" tvg-logo="https://raw.githubusercontent.com/4K-TV/LOGO/main/bein8.png" group-title="beIN Sports",beIN SPORTS 8
+https://m3u.hoev.workers.dev/live/bein8/index.m3u8
+
+#EXTINF:-1 tvg-id="beIN_SPORTS_9" tvg-name="beIN SPORTS 9" tvg-logo="https://raw.githubusercontent.com/4K-TV/LOGO/main/bein9.png" group-title="beIN Sports",beIN SPORTS 9
+https://m3u.hoev.workers.dev/live/bein9/index.m3u8
+
+#EXTINF:-1 tvg-id="SSC_1" tvg-name="SSC 1" tvg-logo="https://raw.githubusercontent.com/4K-TV/LOGO/main/ssc1.png" group-title="SSC Sports",SSC 1
+https://m3u.hoev.workers.dev/live/ssc1/index.m3u8
+
+#EXTINF:-1 tvg-id="SSC_2" tvg-name="SSC 2" tvg-logo="https://raw.githubusercontent.com/4K-TV/LOGO/main/ssc2.png" group-title="SSC Sports",SSC 2
+https://m3u.hoev.workers.dev/live/ssc2/index.m3u8
+
+#EXTINF:-1 tvg-id="SSC_3" tvg-name="SSC 3" tvg-logo="https://raw.githubusercontent.com/4K-TV/LOGO/main/ssc3.png" group-title="SSC Sports",SSC 3
+https://m3u.hoev.workers.dev/live/ssc3/index.m3u8
+
+#EXTINF:-1 tvg-id="SSC_4" tvg-name="SSC 4" tvg-logo="https://raw.githubusercontent.com/4K-TV/LOGO/main/ssc4.png" group-title="SSC Sports",SSC 4
+https://m3u.hoev.workers.dev/live/ssc4/index.m3u8
+
+#EXTINF:-1 tvg-id="SSC_5" tvg-name="SSC 5" tvg-logo="https://raw.githubusercontent.com/4K-TV/LOGO/main/ssc5.png" group-title="SSC Sports",SSC 5
+https://m3u.hoev.workers.dev/live/ssc5/index.m3u8
+
+#EXTINF:-1 tvg-id="SSC_EXTRA_1" tvg-name="SSC EXTRA 1" tvg-logo="https://raw.githubusercontent.com/4K-TV/LOGO/main/sscextra1.png" group-title="SSC Sports",SSC EXTRA 1
+https://m3u.hoev.workers.dev/live/sscextra1/index.m3u8
+
+#EXTINF:-1 tvg-id="SSC_EXTRA_2" tvg-name="SSC EXTRA 2" tvg-logo="https://raw.githubusercontent.com/4K-TV/LOGO/main/sscextra2.png" group-title="SSC Sports",SSC EXTRA 2
+https://m3u.hoev.workers.dev/live/sscextra2/index.m3u8
+
+
+# ============================================
+# SECTION 2: OTHER SPORTS CHANNELS
+# ============================================
+
+#EXTINF:-1 tvg-id="" tvg-name="STARZPLAY SPORTS 1" tvg-logo="" group-title="Sports",STARZPLAY SPORTS 1
+http://hls.tvhub.tv/starzplay/sports1.m3u8
+
+#EXTINF:-1 tvg-id="" tvg-name="STARZPLAY SPORTS 2" tvg-logo="" group-title="Sports",STARZPLAY SPORTS 2
+http://hls.tvhub.tv/starzplay/sports2.m3u8
+
+#EXTINF:-1 tvg-id="" tvg-name="AD SPORTS 1" tvg-logo="" group-title="Sports",AD SPORTS 1
+https://admdn4.shaqba.com/out/v1/ad-sports1/index.m3u8
+
+#EXTINF:-1 tvg-id="" tvg-name="AD SPORTS 2" tvg-logo="" group-title="Sports",AD SPORTS 2
+https://admdn4.shaqba.com/out/v1/ad-sports2/index.m3u8
+
+#EXTINF:-1 tvg-id="" tvg-name="DUBAI SPORTS 1" tvg-logo="" group-title="Sports",DUBAI SPORTS 1
+https://dmi.akamaized.net/hls/live/2012011/dubaisports/index.m3u8
+
+
+# ============================================
+# SECTION 3: OSN NETWORK
+# ============================================
+
+#EXTINF:-1 tvg-id="" tvg-name="OSN MOVIES FIRST" tvg-logo="" group-title="OSN",OSN MOVIES FIRST
+http://erbvr.com:8080/live/user/pass/101.m3u8
+
+#EXTINF:-1 tvg-id="" tvg-name="OSN MOVIES ACTION" tvg-logo="" group-title="OSN",OSN MOVIES ACTION
+http://erbvr.com:8080/live/user/pass/102.m3u8
+
+#EXTINF:-1 tvg-id="" tvg-name="OSN MOVIES COMEDY" tvg-logo="" group-title="OSN",OSN MOVIES COMEDY
+http://erbvr.com:8080/live/user/pass/103.m3u8
+
+#EXTINF:-1 tvg-id="" tvg-name="OSN POP UP" tvg-logo="" group-title="OSN",OSN POP UP
+http://erbvr.com:8080/live/user/pass/104.m3u8
+
+#EXTINF:-1 tvg-id="" tvg-name="OSN SERIES PRIMA" tvg-logo="" group-title="OSN",OSN SERIES PRIMA
+http://erbvr.com:8080/live/user/pass/105.m3u8
+
+#EXTINF:-1 tvg-id="" tvg-name="OSN YA HALA" tvg-logo="" group-title="OSN",OSN YA HALA
+http://erbvr.com:8080/live/user/pass/106.m3u8
+
+#EXTINF:-1 tvg-id="" tvg-name="OSN KIDZONE" tvg-logo="" group-title="OSN",OSN KIDZONE
+http://erbvr.com:8080/live/user/pass/107.m3u8
+
+
+# ============================================
+# SECTION 4: MBC NETWORK
+# ============================================
+
+#EXTINF:-1 tvg-id="" tvg-name="MBC 1" tvg-logo="" group-title="MBC",MBC 1
+https://shls-mbc1-prod-dub.shahid.net/out/v1/21a5eb23b09040cca3ddaa95bbf0cb9b/index.m3u8
+
+#EXTINF:-1 tvg-id="" tvg-name="MBC 2" tvg-logo="" group-title="MBC",MBC 2
+https://shls-mbc2-prod-dub.shahid.net/out/v1/fa7ec2ee5cd94b7aa9a45f94d930f353/index.m3u8
+
+#EXTINF:-1 tvg-id="" tvg-name="MBC 4" tvg-logo="" group-title="MBC",MBC 4
+https://shls-mbc4-prod-dub.shahid.net/out/v1/f156d1bf1e6047be88bb5d705cbe0dae/index.m3u8
+
+#EXTINF:-1 tvg-id="" tvg-name="MBC ACTION" tvg-logo="" group-title="MBC",MBC ACTION
+https://shls-mbcaction-prod-dub.shahid.net/out/v1/86b51556a31c4f529f8c4456ed3e6a24/index.m3u8
+
+#EXTINF:-1 tvg-id="" tvg-name="MBC MAX" tvg-logo="" group-title="MBC",MBC MAX
+https://shls-mbcmax-prod-dub.shahid.net/out/v1/7da80931123f4625b16f316200be6cd3/index.m3u8
+
+#EXTINF:-1 tvg-id="" tvg-name="MBC DRAMA" tvg-logo="" group-title="MBC",MBC DRAMA
+https://shls-mbcdrama-prod-dub.shahid.net/out/v1/e41e548d42d3419bb6a2bc3f4cd051ff/index.m3u8
+
+#EXTINF:-1 tvg-id="" tvg-name="MBC MASR" tvg-logo="" group-title="MBC",MBC MASR
+https://shls-mbcmasr-prod-dub.shahid.net/out/v1/f7a6cfbfca8645709971ceb9db2d58cb/index.m3u8
+
+#EXTINF:-1 tvg-id="" tvg-name="MBC VARIETY" tvg-logo="" group-title="MBC",MBC VARIETY
+https://shls-mbcvariety-prod-dub.shahid.net/out/v1/9a41eeeb53504ef3a7a937a0bc07502e/index.m3u8
+
+
+# ============================================
+# SECTION 5: KIDS & ANIMATION
+# ============================================
+
+#EXTINF:-1 tvg-id="" tvg-name="SPACETOON" tvg-logo="" group-title="Kids",SPACETOON
+https://spacetoon.com/live/stream.m3u8
+
+#EXTINF:-1 tvg-id="" tvg-name="MBC3" tvg-logo="" group-title="Kids",MBC3
+https://shls-mbc3-prod-dub.shahid.net/out/v1/3ba239edddae4c2598be5bfa5cccebd8/index.m3u8
+
+#EXTINF:-1 tvg-id="" tvg-name="CARTOON NETWORK ARABIC" tvg-logo="" group-title="Kids",CARTOON NETWORK ARABIC
+https://cnarabic.com/live/stream.m3u8
+
+#EXTINF:-1 tvg-id="" tvg-name="MAJID KIDS" tvg-logo="" group-title="Kids",MAJID KIDS
+https://admdn1.shaqba.com/out/v1/majid-tv/index.m3u8
+
+#EXTINF:-1 tvg-id="" tvg-name="TOM AND JERRY 24/7" tvg-logo="" group-title="Kids",TOM AND JERRY 24/7
+http://stream.tvhub.tv/kids/tomandjerry.m3u8
+
+#EXTINF:-1 tvg-id="" tvg-name="ANIME 24/7" tvg-logo="" group-title="Kids",ANIME 24/7
+http://stream.tvhub.tv/kids/anime.m3u8
+
+
+# ============================================
+# SECTION 6: NEWS CHANNELS
+# ============================================
+
+#EXTINF:-1 tvg-id="" tvg-name="AL SHARQIYA" tvg-logo="" group-title="News",AL SHARQIYA
+https://alsharqiya.com/live/stream.m3u8
+
+#EXTINF:-1 tvg-id="" tvg-name="AL IRAQIYA NEWS" tvg-logo="" group-title="News",AL IRAQIYA NEWS
+https://imn.com/live/news.m3u8
+
+#EXTINF:-1 tvg-id="" tvg-name="AL JAZEERA" tvg-logo="" group-title="News",AL JAZEERA
+https://live-hls-web-aje.akamaized.net/out/v1/0e04ad1371654e52b80d0d82d33a925f/index.m3u8
+
+#EXTINF:-1 tvg-id="" tvg-name="AL ARABIYA" tvg-logo="" group-title="News",AL ARABIYA
+https://live.alarabiya.net/alarabiya/live/playlist.m3u8
+
+#EXTINF:-1 tvg-id="" tvg-name="AL HADATH" tvg-logo="" group-title="News",AL HADATH
+https://live.alhadath.net/alhadath/live/playlist.m3u8
+
+#EXTINF:-1 tvg-id="" tvg-name="SKY NEWS ARABIA" tvg-logo="" group-title="News",SKY NEWS ARABIA
+https://stream.skynewsarabia.com/hls/sna.m3u8
+
+#EXTINF:-1 tvg-id="" tvg-name="BBC ARABIC" tvg-logo="" group-title="News",BBC ARABIC
+https://bbcarabic.com/live/stream.m3u8
+
+#EXTINF:-1 tvg-id="" tvg-name="TRT ARABI" tvg-logo="" group-title="News",TRT ARABI
+https://trtarabi.com/live/stream.m3u8
+
+#EXTINF:-1 tvg-id="" tvg-name="AL GHAD" tvg-logo="" group-title="News",AL GHAD
+https://alghad.com/live/stream.m3u8
